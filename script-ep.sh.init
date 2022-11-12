@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# we are root
+# cwd is /
+export DEBIAN_FRONTEND=noninteractive
+apt update >> /install.log 2>&1
+#apt upgrade -y >> /install.log 2>&1
+apt install -y iptables-persistent ipset ipset-persistent wireguard jq xtables-addons-dkms >> /install.log 2>&1
+
+awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp -C / >> /install.log 2>&1
+
+echo "{ipv6_input}" > /ipv6.txt
+echo "{ip_wan_input}" > /ip_wan.txt
+
+for addr in `cat /ipv6.txt | sed 's/\s*,\s*/ /g'`; do
+    addr=`echo "${addr}" | sed 's/:0/:/g' | sed 's/::*:/::/g'`
+    main_if=`ip -6 -o a | egrep -v ' wg[0-9]*veth1 ' | fgrep ' global ' | fgrep " ${addr}/" | cut -d \  -f 2`
+    if [ ! -z "${main_if}" ]; then
+        for addr2 in `cat /ipv6.txt | sed 's/\s*,\s*/ /g'`; do
+            addr2=`echo "${addr2}" | sed 's/:0/:/g' | sed 's/::*:/::/g'`
+            if [ "${addr}" != "${addr2}" ]; then
+                ip a add "${addr2}/126" dev "${main_if}"
+            fi
+        done
+        break
+    fi
+done
+
+sysctl -p/etc/sysctl.d/90-forwarding.conf >> /install.log 2>&1
+
+echo 1 > /proc/sys/net/netfilter/nf_log_all_netns
+
+iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
+ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
+
+chmod 700 /wg-mng.sh >> /install.log 2>&1
+systemctl enable --now wg-mng.socket >> /install.log 2>&1
+
+exit 0
+__PAYLOAD_BEGINS__
