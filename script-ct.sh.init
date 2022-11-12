@@ -12,18 +12,17 @@ awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +
 echo "{ipv6_input}" > /ipv6.txt
 
 for addr in `cat /ipv6.txt | sed 's/\s*,\s*/ /g'`; do
-    addr=`echo "${addr}" | sed 's/:0/:/g' | sed 's/::*:/::/g'`
-    main_if=`ip -6 -o a | egrep -v ' wg[0-9]*veth1 ' | fgrep ' global ' | fgrep " ${addr}/" | cut -d \  -f 2`
-    if [ ! -z "${main_if}" ]; then
+    if [ ! -z "`fgrep \" ${addr}/\" /etc/netplan/99-netcfg-vmware.yaml`" ]; then
         for addr2 in `cat /ipv6.txt | sed 's/\s*,\s*/ /g'`; do
-            addr2=`echo "${addr2}" | sed 's/:0/:/g' | sed 's/::*:/::/g'`
             if [ "${addr}" != "${addr2}" ]; then
-                ip a add "${addr2}/126" dev "${main_if}"
+                sed -i "s#\(\s*- \)${addr}/.*#"\\0\\n\\1${addr2}\/126"#g" /etc/netplan/99-netcfg-vmware.yaml
             fi
         done
         break
     fi
 done
+
+netplan apply
 
 exit 0
 
