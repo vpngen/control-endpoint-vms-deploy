@@ -15,3 +15,5 @@ lan_start_ip = "<LAN_LOWEST_IP_ADDRESS>"
 vm_name_prefix = "vm-"
 ctrl_name_prefix = "control_ipv6"
 ctrl_ipv6_high_hex = "fdcc"
+
+endpoint_lan_interface = false ### Should be set to "false" for production environment!

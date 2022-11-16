@@ -56,6 +56,10 @@ variable "lan_start_ip" {
   type = string
 }
 
+variable "endpoint_lan_interface" {
+  type = bool
+}
+
 # Configure the VMware Cloud Director Provider
 provider "vcd" {
   user                 = var.vcd_user
@@ -206,15 +210,18 @@ resource "vcd_vm" "endpoint" {
     "user-data"   = base64encode(data.local_file.script-ep_file[each.value].content)
   }
 
-  network {
-    type               = "org"
-    name               = "highload_LAN"
-    ip_allocation_mode = "MANUAL"
-    ip                 = format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
-                          floor((local.lan_start_ip_int % 16777216) / 65536),
-                          floor((local.lan_start_ip_int % 65536) / 256),
-                          (local.lan_start_ip_int % 256) + each.value * 2 + 1)
-    is_primary         = true
+  dynamic "network" {
+    for_each = var.endpoint_lan_interface ? ["set-lan"] : []
+    content {
+      type               = "org"
+      name               = "highload_LAN"
+      ip_allocation_mode = "MANUAL"
+      ip                 = format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
+                            floor((local.lan_start_ip_int % 16777216) / 65536),
+                            floor((local.lan_start_ip_int % 65536) / 256),
+                            (local.lan_start_ip_int % 256) + each.value * 2 + 1)
+      is_primary         = true
+    }
   }
 
   dynamic "network" {
