@@ -34,16 +34,11 @@ variable "ctrl_ipv6_high_hex" {
   type = string
 }
 
-variable "wan_name" {
-  type = string
-  sensitive = true
-}
-
 variable "wan_ips_per_vm" {
   type = number
 }
 
-variable "wan_ip_net_gw" {
+variable "wan_name_ip_net_gw" {
   type = list
 }
 
@@ -73,10 +68,10 @@ provider "vcd" {
 }
 
 locals {
-  ctrl_ipv6_ips = [for ipv6 in var.wan_ip_net_gw : format("%s:%x:%x:0:0:0:0:",
-    var.ctrl_ipv6_high_hex, split(".", ipv6[0])[0] * 256 + split(".", ipv6[0])[1],
-      split(".", ipv6[0])[2] * 256 + split(".", ipv6[0])[3])]
-  vm_pairs = ceil(length(var.wan_ip_net_gw) / var.wan_ips_per_vm)
+  ctrl_ipv6_ips = [for ipv6 in var.wan_name_ip_net_gw : format("%s:%x:%x:0:0:0:0:",
+    var.ctrl_ipv6_high_hex, split(".", ipv6[1])[0] * 256 + split(".", ipv6[1])[1],
+      split(".", ipv6[1])[2] * 256 + split(".", ipv6[1])[3])]
+  vm_pairs = ceil(length(var.wan_name_ip_net_gw) / var.wan_ips_per_vm)
   lan_start_ip_int = split(".", var.lan_start_ip)[0] * 16777216 + split(".", var.lan_start_ip)[1] * 65536 + split(".", var.lan_start_ip)[2] * 256 + split(".", var.lan_start_ip)[3]
 }
 
@@ -173,7 +168,7 @@ resource "null_resource" "script-ep" {
   provisioner "local-exec" {
     command = <<EOT
 cat script-ep.sh.init > script-ep.sh.${each.value} ;
-sed -i 's#{ip_wan_input}#${join(",", [for ip in slice(var.wan_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_ip_net_gw))) : format("%s/%d|%s", ip[0], ip[1], ip[2])])}#' script-ep.sh.${each.value} ;
+sed -i 's#{ip_wan_input}#${join(",", [for ip in slice(var.wan_name_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_name_ip_net_gw))) : format("%s/%d|%s", ip[1], ip[2], ip[3])])}#' script-ep.sh.${each.value} ;
 sed -i 's#{ipv6_input}#${join("3,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}3#' script-ep.sh.${each.value} ;
 tar czp -C setup-files-ep/ . | base64 >> script-ep.sh.${each.value}
 EOT
@@ -225,12 +220,12 @@ resource "vcd_vm" "endpoint" {
   }
 
   dynamic "network" {
-    for_each = slice(var.wan_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_ip_net_gw)))
+    for_each = slice(var.wan_name_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_name_ip_net_gw)))
     content {
       type               = "org"
-      name               = var.wan_name
+      name               = network.value[0]
       ip_allocation_mode = "MANUAL"
-      ip                 = network.value[0]
+      ip                 = network.value[1]
       is_primary         = false
     }
   }
