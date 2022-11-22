@@ -25,9 +25,7 @@ done
 
 netplan apply
 
-sysctl -p/etc/sysctl.d/90-forwarding.conf >> /install.log 2>&1
-
-echo 1 > /proc/sys/net/netfilter/nf_log_all_netns
+sysctl -p/etc/sysctl.d/90-endpoint-additions.conf >> /install.log 2>&1
 
 iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
 ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
