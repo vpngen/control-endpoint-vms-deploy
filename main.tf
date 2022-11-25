@@ -140,7 +140,7 @@ resource "vcd_vm" "control" {
 
   network {
     type               = "org"
-    name               = "highload_LAN"
+    name               = var.lan_name
     ip_allocation_mode = "MANUAL"
     ip                 = format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
                           floor((local.lan_start_ip_int % 16777216) / 65536),
@@ -209,7 +209,7 @@ resource "vcd_vm" "endpoint" {
     for_each = var.endpoint_lan_interface ? ["set-lan"] : []
     content {
       type               = "org"
-      name               = "highload_LAN"
+      name               = var.lan_name
       ip_allocation_mode = "MANUAL"
       ip                 = format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
                             floor((local.lan_start_ip_int % 16777216) / 65536),
