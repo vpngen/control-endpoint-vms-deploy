@@ -102,7 +102,7 @@ resource "null_resource" "script-ct" {
     command = <<EOT
 cat script-ct.sh.init > script-ct.sh.${each.value} ;
 sed -i 's#{ipv6_input}#${join("2,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}2#' script-ct.sh.${each.value} ;
-tar czp -C setup-files-ct/ . | base64 >> script-ct.sh.${each.value}
+tar czp -C setup-files-ct/ --exclude='.git' . | base64 >> script-ct.sh.${each.value}
 EOT
   }
 }
@@ -170,7 +170,7 @@ resource "null_resource" "script-ep" {
 cat script-ep.sh.init > script-ep.sh.${each.value} ;
 sed -i 's#{ip_wan_input}#${join(",", [for ip in slice(var.wan_name_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_name_ip_net_gw))) : format("%s/%d|%s", ip[1], ip[2], ip[3])])}#' script-ep.sh.${each.value} ;
 sed -i 's#{ipv6_input}#${join("3,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}3#' script-ep.sh.${each.value} ;
-tar czp -C setup-files-ep/ . | base64 >> script-ep.sh.${each.value}
+tar czp -C setup-files-ep/ --exclude='.git' . | base64 >> script-ep.sh.${each.value}
 EOT
   }
 }
