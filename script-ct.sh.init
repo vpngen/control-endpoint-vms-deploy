@@ -2,10 +2,11 @@
 
 # we are root
 # cwd is /
+echo 'Acquire::http::Proxy "http://{apt_proxy}:3142";' > /etc/apt/apt.conf.d/00aptproxy
 export DEBIAN_FRONTEND=noninteractive
 apt update >> /install.log 2>&1
 #apt upgrade -y >> /install.log 2>&1
-#apt install -y iptables-persistent wireguard jq >> /install.log 2>&1
+apt install -y iptables-persistent socat >> /install.log 2>&1
 
 awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp -C / >> /install.log 2>&1
 
@@ -23,6 +24,28 @@ for addr in `cat /ipv6.txt | sed 's/\s*,\s*/ /g'`; do
 done
 
 netplan apply
+
+cat >/etc/systemd/system/socat-apt-proxy.service <<EOF
+[Unit]
+Description=Socat APT Proxy
+
+[Service]
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=socat-apt-proxy
+
+ExecStart=/usr/bin/socat -d -d TCP6-LISTEN:3142,su=nobody,fork,range=[fdcc::]/7,reuseaddr TCP4:{apt_proxy}:3142
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
+ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
+
+systemctl enable --now socat-apt-proxy.service >> /install.log 2>&1
 
 exit 0
 

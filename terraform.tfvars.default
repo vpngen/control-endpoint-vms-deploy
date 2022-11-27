@@ -9,6 +9,7 @@ wan_name_ip_net_gw = [
 wan_ips_per_vm = 3
 
 lan_name = "<LAN_NAME>"
+lan_mgmt_ip = "<LAN_MANAGEMENT_IP>"
 lan_start_ip = "<LAN_LOWEST_IP_ADDRESS>"
 
 vm_name_prefix = "vm-"

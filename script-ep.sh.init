@@ -2,6 +2,13 @@
 
 # we are root
 # cwd is /
+
+false ; while [ $? -ne 0 ]; do
+    sleep 0.1
+    nc -zw1 {apt_proxy} 3142
+done
+
+echo 'Acquire::http::Proxy "http://[{apt_proxy}]:3142";' > /etc/apt/apt.conf.d/00aptproxy
 export DEBIAN_FRONTEND=noninteractive
 apt update >> /install.log 2>&1
 #apt upgrade -y >> /install.log 2>&1
