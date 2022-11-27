@@ -55,8 +55,8 @@ variable "lan_start_ip" {
   type = string
 }
 
-variable "endpoint_lan_interface" {
-  type = bool
+variable "endpoint_lan_interfaces" {
+  type = list
 }
 
 # Configure the VMware Cloud Director Provider
@@ -212,15 +212,16 @@ resource "vcd_vm" "endpoint" {
   }
 
   dynamic "network" {
-    for_each = var.endpoint_lan_interface ? ["set-lan"] : []
+    for_each = setintersection(var.endpoint_lan_interfaces,
+        [ format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
+            floor((local.lan_start_ip_int % 16777216) / 65536),
+            floor((local.lan_start_ip_int % 65536) / 256),
+            (local.lan_start_ip_int % 256) + each.value * 2 + 1) ])
     content {
       type               = "org"
       name               = var.lan_name
       ip_allocation_mode = "MANUAL"
-      ip                 = format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
-                            floor((local.lan_start_ip_int % 16777216) / 65536),
-                            floor((local.lan_start_ip_int % 65536) / 256),
-                            (local.lan_start_ip_int % 256) + each.value * 2 + 1)
+      ip                 = network.value
       is_primary         = true
     }
   }
