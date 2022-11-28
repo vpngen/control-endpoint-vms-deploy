@@ -110,6 +110,13 @@ sed -i 's#{apt_proxy}#${var.lan_mgmt_ip}#g' script-ct.sh.${each.value} ;
 tar czp -C setup-files-ct/ --exclude='.git' . | base64 >> script-ct.sh.${each.value}
 EOT
   }
+
+  provisioner "local-exec" {
+    when = destroy
+    command = <<EOT
+rm -f ${self.triggers.dest_file}
+EOT
+  }
 }
 
 data "local_file" "script-ct_file" {
@@ -177,6 +184,13 @@ sed -i 's#{ip_wan_input}#${join(",", [for ip in slice(var.wan_name_ip_net_gw, ea
 sed -i 's#{ipv6_input}#${join("3,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}3#' script-ep.sh.${each.value} ;
 sed -i 's#{apt_proxy}#${format("%s2", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])}#g' script-ep.sh.${each.value} ;
 tar czp -C setup-files-ep/ --exclude='.git' . | base64 >> script-ep.sh.${each.value}
+EOT
+  }
+
+  provisioner "local-exec" {
+    when = destroy
+    command = <<EOT
+rm -f ${self.triggers.dest_file}
 EOT
   }
 }
