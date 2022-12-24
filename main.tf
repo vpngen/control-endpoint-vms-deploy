@@ -236,8 +236,14 @@ resource "vcd_vm" "endpoint" {
       name               = var.lan_name
       ip_allocation_mode = "MANUAL"
       ip                 = network.value
-      is_primary         = false
     }
+  }
+
+  network {
+    type               = "org"
+    name               = "${var.ctrl_name_prefix}-${each.value}"
+    ip_allocation_mode = "MANUAL"
+    ip                 = format("%s3", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])
   }
 
   dynamic "network" {
@@ -249,13 +255,5 @@ resource "vcd_vm" "endpoint" {
       ip                 = network.value[1]
       is_primary         = false
     }
-  }
-
-  network {
-    type               = "org"
-    name               = "${var.ctrl_name_prefix}-${each.value}"
-    ip_allocation_mode = "MANUAL"
-    ip                 = format("%s3", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])
-    is_primary         = true
   }
 }
