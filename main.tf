@@ -99,15 +99,16 @@ resource "null_resource" "script-ct" {
   for_each = toset([for vm_num in range(0, local.vm_pairs) : tostring(vm_num)])
 
   triggers = {
-    dest_file   = "script-ct.sh.${each.value}"
+    dest_file   = ".script-files/script-ct.sh.${each.value}"
   }
 
   provisioner "local-exec" {
     command = <<EOT
-cat script-ct.sh.init > script-ct.sh.${each.value} ;
-sed -i 's#{ipv6_input}#${join("2,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}2#' script-ct.sh.${each.value} ;
-sed -i 's#{apt_proxy}#${var.lan_mgmt_ip}#g' script-ct.sh.${each.value} ;
-tar czp -C setup-files-ct/ --exclude='.git' . | base64 >> script-ct.sh.${each.value}
+mkdir -p .script-files ;
+cat script-ct.sh.init > .script-files/script-ct.sh.${each.value} ;
+sed -i 's#{ipv6_input}#${join("2,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}2#' .script-files/script-ct.sh.${each.value} ;
+sed -i 's#{apt_proxy}#${var.lan_mgmt_ip}#g' .script-files/script-ct.sh.${each.value} ;
+tar czp -C setup-files-ct/ --exclude='.git' . | base64 >> .script-files/script-ct.sh.${each.value}
 EOT
   }
 
@@ -174,16 +175,17 @@ resource "null_resource" "script-ep" {
   for_each = toset([for vm_num in range(0, local.vm_pairs) : tostring(vm_num)])
 
   triggers = {
-    dest_file   = "script-ep.sh.${each.value}"
+    dest_file   = ".script-files/script-ep.sh.${each.value}"
   }
 
   provisioner "local-exec" {
     command = <<EOT
-cat script-ep.sh.init > script-ep.sh.${each.value} ;
-sed -i 's#{ip_wan_input}#${join(",", [for ip in slice(var.wan_name_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_name_ip_net_gw))) : format("%s/%d|%s", ip[1], ip[2], ip[3])])}#' script-ep.sh.${each.value} ;
-sed -i 's#{ipv6_input}#${join("3,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}3#' script-ep.sh.${each.value} ;
-sed -i 's#{apt_proxy}#${format("%s2", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])}#g' script-ep.sh.${each.value} ;
-tar czp -C setup-files-ep/ --exclude='.git' . | base64 >> script-ep.sh.${each.value}
+mkdir -p .script-files ;
+cat script-ep.sh.init > .script-files/script-ep.sh.${each.value} ;
+sed -i 's#{ip_wan_input}#${join(",", [for ip in slice(var.wan_name_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_name_ip_net_gw))) : format("%s/%d|%s", ip[1], ip[2], ip[3])])}#' .script-files/script-ep.sh.${each.value} ;
+sed -i 's#{ipv6_input}#${join("3,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}3#' .script-files/script-ep.sh.${each.value} ;
+sed -i 's#{apt_proxy}#${format("%s2", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])}#g' .script-files/script-ep.sh.${each.value} ;
+tar czp -C setup-files-ep/ --exclude='.git' . | base64 >> .script-files/script-ep.sh.${each.value}
 EOT
   }
 
