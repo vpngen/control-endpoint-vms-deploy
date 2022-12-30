@@ -9,7 +9,7 @@ false ; while [ $? -ne 0 ]; do
 done
 
 echo 'Acquire::http::Proxy "http://{apt_proxy}:3142";' > /etc/apt/apt.conf.d/00aptproxy
-echo 'deb [arch=amd64 trusted=yes] http://apt-repo.local/apt-repo stable main' > /etc/apt/sources.list.d/vginfra.list
+echo '{keydesk_repo}' > /etc/apt/sources.list.d/vginfra.list
 export DEBIAN_FRONTEND=noninteractive
 apt clean >> /install.log 2>&1
 apt update >> /install.log 2>&1
