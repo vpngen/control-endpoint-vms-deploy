@@ -50,10 +50,28 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
+cat >/etc/systemd/system/socat-rsyslog-proxy.service <<EOF
+[Unit]
+Description=Socat Rsyslog Proxy
+
+[Service]
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=socat-rsyslog-proxy
+
+ExecStart=/usr/bin/socat -d -d TCP6-LISTEN:514,su=nobody,fork,range=[fdcc::]/7,reuseaddr TCP4:{rsyslog_remote}:514
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
 ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
 
 systemctl enable --now socat-apt-proxy.service >> /install.log 2>&1
+systemctl enable --now socat-rsyslog-proxy.service >> /install.log 2>&1
 
 apt install -y vgkeydesk-all >> /install.log 2>&1
 

@@ -113,6 +113,7 @@ mkdir -p .script-files ;
 cat script-ct.sh.init > .script-files/script-ct.sh.${each.value} ;
 sed -i 's#{ipv6_input}#${join("2,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}2#' .script-files/script-ct.sh.${each.value} ;
 sed -i 's#{apt_proxy}#${var.lan_mgmt_ip}#g' .script-files/script-ct.sh.${each.value} ;
+sed -i 's#{rsyslog_remote}#${var.lan_mgmt_ip}#g' .script-files/script-ct.sh.${each.value} ;
 sed -i 's#{keydesk_repo}#${var.keydesk_deb_repo_string}#g' .script-files/script-ct.sh.${each.value} ;
 tar czp -C setup-files-ct/ --exclude='.git' . | base64 >> .script-files/script-ct.sh.${each.value}
 EOT
