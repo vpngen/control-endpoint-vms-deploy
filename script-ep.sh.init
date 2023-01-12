@@ -35,6 +35,15 @@ netplan apply
 
 sysctl -p/etc/sysctl.d/90-endpoint-additions.conf >> /install.log 2>&1
 
+cat >/etc/rsyslog.d/00-lea-remote.conf <<EOF
+:msg,contains,"[LEA-" @@[{apt_proxy}]
+& stop
+EOF
+
+systemctl restart rsyslog >> /install.log 2>&1
+
+echo '* * * * * for i in `ip netns list | cut -d \  -f 1`; do ( ip netns exec "$i" wg show all dump | grep "[0-9]:[0-9]*\s" | sed "s#\/[0-9]*[^\s]*##g" | tr -d "\n" ; ip netns exec "$i" iptables -t nat -nvL | grep "to:[^\s]*" ) | awk '"'"'BEGIN {OFS=""} {split($4,a,":"); split($5,b,","); split($15,c,":"); for (i=1;i<=length(b);i++) print "[LEA","-REV]: IN= OUT=",$1," SRC=",a[1]," DST=",b[i]," EXT=",c[2]}'"'"'; done | logger -t "logger"' | crontab -
+
 iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
 ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
 
