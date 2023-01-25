@@ -19,4 +19,6 @@ ctrl_ipv6_high_hex = "fdcc"
 
 keydesk_deb_repo_string = "deb <URL> stable main"
 
+zabbix_server = "<ZABBIX_SERVER_IP>"
+
 endpoint_lan_interfaces = [] ### The list of LAN IP addresses to enable for endpoint VMs

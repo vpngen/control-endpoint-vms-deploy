@@ -9,11 +9,12 @@ false ; while [ $? -ne 0 ]; do
 done
 
 echo 'Acquire::http::Proxy "http://[{apt_proxy}]:3142";' > /etc/apt/apt.conf.d/00aptproxy
+echo 'deb [arch=amd64 trusted=yes] http://repo.zabbix.com/zabbix/6.0/ubuntu jammy main' > /etc/apt/sources.list.d/zabbix.list
 export DEBIAN_FRONTEND=noninteractive
 apt clean >> /install.log 2>&1
 apt update >> /install.log 2>&1
 #apt upgrade -y >> /install.log 2>&1
-apt install -y iptables-persistent ipset ipset-persistent wireguard jq xtables-addons-dkms dnsmasq >> /install.log 2>&1
+apt install -y iptables-persistent ipset ipset-persistent wireguard jq xtables-addons-dkms dnsmasq zabbix-agent >> /install.log 2>&1
 
 awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp -C / >> /install.log 2>&1
 
@@ -40,12 +41,23 @@ cat >/etc/rsyslog.d/00-lea-remote.conf <<EOF
 & stop
 EOF
 
+cat >/etc/zabbix/zabbix_agentd.conf <<EOF
+PidFile=/run/zabbix/zabbix_agentd.pid
+LogFile=/var/log/zabbix/zabbix_agentd.log
+LogFileSize=1
+Server={control_ipv6_list}
+Include=/etc/zabbix/zabbix_agentd.d/*.conf
+EOF
+
 systemctl restart rsyslog >> /install.log 2>&1
 
 echo '* * * * * for i in `ip netns list | cut -d \  -f 1`; do ip netns exec "$i" wg show all dump | egrep "\.[0-9][0-9]?[0-9]?:[0-9]" | sed -E "s#(\.[0-9][0-9]?[0-9]?)\/[0-9].*#\\1#g" | xargs -r -L 1 echo `ip netns exec "$i" ip r get 1.1.1.1 | head -1 | cut -d \  -f 7` | awk '"'"'BEGIN {OFS=""} {split($5,a,":"); print "[LEA","-REV]: IN= OUT=",$2," SRC=",a[1]," DST=",$6," EXT=",$1}'"'"'; done | logger -t "logger"' | crontab -
 
 iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
 ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
+
+systemctl restart zabbix-agent.service >> /install.log 2>&1
+systemctl enable zabbix-agent.service >> /install.log 2>&1
 
 chmod 700 /wg-mng.sh >> /install.log 2>&1
 systemctl enable --now wg-mng.socket >> /install.log 2>&1

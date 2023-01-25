@@ -64,6 +64,11 @@ variable "keydesk_deb_repo_string" {
   sensitive = true
 }
 
+variable "zabbix_server" {
+  type = string
+  sensitive = true
+}
+
 # Configure the VMware Cloud Director Provider
 provider "vcd" {
   user                 = var.vcd_user
@@ -115,6 +120,8 @@ sed -i 's#{ipv6_input}#${join("2,", slice(local.ctrl_ipv6_ips, each.value * var.
 sed -i 's#{apt_proxy}#${var.lan_mgmt_ip}#g' .script-files/script-ct.sh.${each.value} ;
 sed -i 's#{rsyslog_remote}#${var.lan_mgmt_ip}#g' .script-files/script-ct.sh.${each.value} ;
 sed -i 's#{keydesk_repo}#${var.keydesk_deb_repo_string}#g' .script-files/script-ct.sh.${each.value} ;
+sed -i 's#{zabbix_server}#${var.zabbix_server}#g' .script-files/script-ct.sh.${each.value} ;
+sed -i 's#{endpoint_ipv6}#${format("%s3", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])}#g' .script-files/script-ct.sh.${each.value} ;
 tar czp -C setup-files-ct/ --exclude='.git' . | base64 >> .script-files/script-ct.sh.${each.value}
 EOT
   }
@@ -192,6 +199,7 @@ cat script-ep.sh.init > .script-files/script-ep.sh.${each.value} ;
 sed -i 's#{ip_wan_input}#${join(",", [for ip in slice(var.wan_name_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_name_ip_net_gw))) : format("%s/%d|%s", ip[1], ip[2], ip[3])])}#' .script-files/script-ep.sh.${each.value} ;
 sed -i 's#{ipv6_input}#${join("3,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}3#' .script-files/script-ep.sh.${each.value} ;
 sed -i 's#{apt_proxy}#${format("%s2", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])}#g' .script-files/script-ep.sh.${each.value} ;
+sed -i 's#{control_ipv6_list}#${join("2,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}2#' .script-files/script-ep.sh.${each.value} ;
 tar czp -C setup-files-ep/ --exclude='.git' . | base64 >> .script-files/script-ep.sh.${each.value}
 EOT
   }

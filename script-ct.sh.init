@@ -67,11 +67,29 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
+cat >/etc/systemd/system/socat-zabbix-proxy.service <<EOF
+[Unit]
+Description=Socat Zabbix Proxy
+
+[Service]
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=socat-zabbix-proxy
+
+ExecStart=/usr/bin/socat -d -d TCP4-LISTEN:10050,su=nobody,fork,range={zabbix_server}/32,reuseaddr TCP6:[{endpoint_ipv6}]:10050
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
 ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
 
 systemctl enable --now socat-apt-proxy.service >> /install.log 2>&1
 systemctl enable --now socat-rsyslog-proxy.service >> /install.log 2>&1
+systemctl enable --now socat-zabbix-proxy.service >> /install.log 2>&1
 
 apt install -y vgkeydesk-all >> /install.log 2>&1
 
