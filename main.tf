@@ -243,11 +243,17 @@ resource "vcd_vm" "endpoint" {
   }
 
   dynamic "network" {
-    for_each = setintersection(var.endpoint_lan_interfaces,
-        [ format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
-            floor((local.lan_start_ip_int % 16777216) / 65536),
-            floor((local.lan_start_ip_int % 65536) / 256),
-            (local.lan_start_ip_int % 256) + each.value * 2 + 1) ])
+    for_each = setintersection(
+            (var.endpoint_lan_interfaces[0] == "all")
+            ? [ format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
+                floor((local.lan_start_ip_int % 16777216) / 65536),
+                floor((local.lan_start_ip_int % 65536) / 256),
+                (local.lan_start_ip_int % 256) + each.value * 2 + 1) ]
+            : var.endpoint_lan_interfaces,
+            [ format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
+                floor((local.lan_start_ip_int % 16777216) / 65536),
+                floor((local.lan_start_ip_int % 65536) / 256),
+                (local.lan_start_ip_int % 256) + each.value * 2 + 1) ])
     content {
       type               = "org"
       name               = var.lan_name
