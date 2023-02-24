@@ -5,6 +5,7 @@
 -A INPUT -i lo -j ACCEPT
 -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A INPUT ! -i wg+ -s fc00::/7 -p tcp --dport 80 -m state --state NEW -j ACCEPT
+-A INPUT ! -i wg+ -s fc00::/7 -p tcp --dport 443 -m state --state NEW -j ACCEPT
 -A INPUT ! -i wg+ -s fc00::/7 -p tcp --dport 3142 -m state --state NEW -j ACCEPT
 -A INPUT ! -i wg+ -s fc00::/7 -p tcp --dport 514 -m state --state NEW -j ACCEPT
 -A INPUT -p ipv6-icmp -j ACCEPT
