@@ -84,7 +84,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-echo "0 0 * * * ( apt update && apt install -y cert-vpn-works ) >/dev/null" | crontab -
+echo "0 1 * * * ( apt-get clean && apt-get update && apt-get install -y cert-vpn-works ) >/dev/null" | crontab -
 
 iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
 ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
