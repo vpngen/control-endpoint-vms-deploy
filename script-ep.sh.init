@@ -64,5 +64,11 @@ chmod 700 /vg-endpoint.json >> /install.log 2>&1
 chmod 700 /wg-mng.sh >> /install.log 2>&1
 systemctl enable --now wg-mng.socket >> /install.log 2>&1
 
+dd if=/dev/zero of=/swapfile bs=1M count=256
+chmod 600 /swapfile
+mkswap /swapfile
+echo '/swapfile none swap defaults 0 0' >> /etc/fstab
+swapon -a
+
 exit 0
 __PAYLOAD_BEGINS__
