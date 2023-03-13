@@ -15,6 +15,10 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get clean >> /install.log 2>&1
 apt-get update >> /install.log 2>&1
 #apt-get upgrade -y >> /install.log 2>&1
+
+ln -s /dev/null /etc/systemd/system/ipsec.service
+ln -s /dev/null /etc/systemd/system/dnsmasq.service
+
 apt-get install -y iptables-persistent ipset ipset-persistent wireguard jq xtables-addons-dkms dnsmasq zabbix-agent vg-nacl \
     libreswan accel-ppp linux-image-generic linux-modules-extra-`uname -r` >> /install.log 2>&1
 
