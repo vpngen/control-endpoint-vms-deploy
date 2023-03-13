@@ -12,10 +12,11 @@ echo 'Acquire::http::Proxy "http://[{apt_proxy}]:3142";' > /etc/apt/apt.conf.d/0
 echo 'deb [arch=amd64 trusted=yes] http://repo.zabbix.com/zabbix/6.0/ubuntu jammy main' > /etc/apt/sources.list.d/zabbix.list
 echo '{keydesk_repo}' > /etc/apt/sources.list.d/vginfra.list
 export DEBIAN_FRONTEND=noninteractive
-apt clean >> /install.log 2>&1
-apt update >> /install.log 2>&1
-#apt upgrade -y >> /install.log 2>&1
-apt install -y iptables-persistent ipset ipset-persistent wireguard jq xtables-addons-dkms dnsmasq zabbix-agent vg-nacl >> /install.log 2>&1
+apt-get clean >> /install.log 2>&1
+apt-get update >> /install.log 2>&1
+#apt-get upgrade -y >> /install.log 2>&1
+apt-get install -y iptables-persistent ipset ipset-persistent wireguard jq xtables-addons-dkms dnsmasq zabbix-agent vg-nacl \
+    libreswan accel-ppp linux-image-generic linux-modules-extra-`uname -r` >> /install.log 2>&1
 
 awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp -C / >> /install.log 2>&1
 
