@@ -65,7 +65,7 @@ ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
 systemctl restart zabbix-agent.service >> /install.log 2>&1
 systemctl enable zabbix-agent.service >> /install.log 2>&1
 
-chmod 700 /vg-endpoint.json >> /install.log 2>&1
+chmod 600 /vg-endpoint.json >> /install.log 2>&1
 chmod 700 /wg-mng.sh >> /install.log 2>&1
 systemctl enable --now wg-mng.socket >> /install.log 2>&1
 
