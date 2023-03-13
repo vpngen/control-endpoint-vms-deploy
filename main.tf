@@ -190,6 +190,7 @@ resource "vcd_vm" "control" {
 
 resource "null_resource" "script-ep" {
   for_each = toset([for vm_num in range(0, local.vm_pairs) : tostring(vm_num)])
+  depends_on = [data.local_file.script-ct_file]
 
   triggers = {
     dest_file   = ".script-files/script-ep.sh.${each.value}"
