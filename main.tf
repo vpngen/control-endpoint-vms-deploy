@@ -229,7 +229,7 @@ resource "vcd_vm" "endpoint" {
   name          = "${var.vm_name_prefix}ep-${each.value}"
   catalog_name  = "VM Templates"
   template_name = "Ubuntu 22.04 Server (20220712)"
-  memory        = 1024
+  memory        = 1536
   cpus          = 1
 
   override_template_disk {
