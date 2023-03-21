@@ -21,4 +21,7 @@ keydesk_deb_repo_string = "deb <URL> stable main"
 
 zabbix_server = "<ZABBIX_SERVER_IP>"
 
+endpoint_cpu_cores = 1
+endpoint_ram_size = 1024 # Megabytes
+
 endpoint_lan_interfaces = [] ### The list of LAN IP addresses to enable for endpoint VMs

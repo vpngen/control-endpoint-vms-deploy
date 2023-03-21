@@ -69,6 +69,14 @@ variable "zabbix_server" {
   sensitive = true
 }
 
+variable "endpoint_cpu_cores" {
+  type = number
+}
+
+variable "endpoint_ram_size" {
+  type = number
+}
+
 # Configure the VMware Cloud Director Provider
 provider "vcd" {
   user                 = var.vcd_user
@@ -229,8 +237,8 @@ resource "vcd_vm" "endpoint" {
   name          = "${var.vm_name_prefix}ep-${each.value}"
   catalog_name  = "VM Templates"
   template_name = "Ubuntu 22.04 Server (20220712)"
-  memory        = 1536
-  cpus          = 1
+  memory        = var.endpoint_ram_size
+  cpus          = var.endpoint_cpu_cores
 
   override_template_disk {
     bus_type        = "paravirtual"
