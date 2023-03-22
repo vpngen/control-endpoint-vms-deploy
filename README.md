@@ -3,12 +3,12 @@
 ######
 
 # Create brigade
-curl -v 'http://[fdcc:c385:76::3]:8080/?wg_add='`echo In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM= | nacl -b seal /etc/vg-router.json`'&internal-nets=172.16.0.1/16,fd0d:86fa:c3bc::1/64&external-ip=195.133.0.118&l2tp-preshared-key='`echo 0123456789012345 | base64 -w 0 | nacl -b seal /etc/vg-router.json`
+curl -v 'http://[fdcc:c385:76::3]:8080/?wg_add='`echo In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM= | nacl -b seal /etc/vg-router.json`'&internal-nets=172.16.0.1/16,fd0d:86fa:c3bc::1/64&external-ip=195.133.0.118'
 # Delete brigade
 curl -v 'http://[fdcc:c385:76::3]:8080/?wg_del='`echo In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM= | nacl -b seal /etc/vg-router.json`
 
 # Create user
-curl -v 'http://[fdcc:c385:76::3]:8080/?peer_add=In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM=&wg-public-key=dUAM1u5nOou3IH6Z07IvjkZU+7zhddqNFecgiMz3cls=&allowed-ips=172.16.0.2,fd0d:86fa:c3bc::2&control-host=fd0d:b00b::1&l2tp-username='`echo -n VPN_USERNAME1 | base64 -w 0 | nacl -b seal /etc/vg-router.json`'&l2tp-password='`echo -n VPN_USER_PASSWORD1 | base64 -w 0 | nacl -b seal /etc/vg-router.json`
+curl -v 'http://[fdcc:c385:76::3]:8080/?peer_add=In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM=&wg-public-key=dUAM1u5nOou3IH6Z07IvjkZU+7zhddqNFecgiMz3cls=&allowed-ips=172.16.0.2,fd0d:86fa:c3bc::2&control-host=fd0d:b00b::1&l2tp-username='`echo -n VPN_USERNAME1 | base64 -w 0 | nacl -b seal /etc/vg-router.json`'&l2tp-password='`echo -n VPN_USER_PASSWORD1 | base64 -w 0 | nacl -b seal /etc/vg-router.json`'&l2tp-preshared-key='`echo 0123456789012345 | base64 -w 0 | nacl -b seal /etc/vg-router.json`
 # Delete user
 curl -v 'http://[fdcc:c385:76::3]:8080/?peer_del=In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM=&wg-public-key=dUAM1u5nOou3IH6Z07IvjkZU+7zhddqNFecgiMz3cls='
 
