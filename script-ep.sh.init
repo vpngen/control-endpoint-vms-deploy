@@ -58,8 +58,6 @@ EOF
 systemctl restart rsyslog >> /install.log 2>&1
 systemctl restart systemd-journald >> /install.log 2>&1
 
-echo '* * * * * for i in `ip netns list | cut -d \  -f 1`; do ip netns exec "$i" wg show all dump | egrep "\.[0-9][0-9]?[0-9]?:[0-9]" | sed -E "s#(\.[0-9][0-9]?[0-9]?)\/[0-9].*#\\1#g" | xargs -r -L 1 echo `ip netns exec "$i" ip r get 1.1.1.1 | head -1 | cut -d \  -f 7` | awk '"'"'BEGIN {OFS=""} {split($5,a,":"); print "[LEA","-REV]: IN= OUT=",$2," SRC=",a[1]," DST=",$6," EXT=",$1}'"'"'; done | logger -t "logger"' | crontab -
-
 iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
 ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
 
