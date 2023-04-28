@@ -68,6 +68,9 @@ chmod 600 /vg-endpoint.json >> /install.log 2>&1
 chmod 700 /wg-mng.sh >> /install.log 2>&1
 systemctl enable --now wg-mng.socket >> /install.log 2>&1
 
+apt -y remove unattended-upgrades snapd packagekit >> /install.log 2>&1
+killall -TERM packagekitd unattended-upgr >> /install.log 2>&1
+
 dd if=/dev/zero of=/swapfile bs=1M count=256
 chmod 600 /swapfile
 mkswap /swapfile
