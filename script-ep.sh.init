@@ -71,11 +71,11 @@ systemctl enable --now wg-mng.socket >> /install.log 2>&1
 apt -y remove unattended-upgrades snapd packagekit >> /install.log 2>&1
 killall -TERM packagekitd unattended-upgr >> /install.log 2>&1
 
-dd if=/dev/zero of=/swapfile bs=1M count=256
-chmod 600 /swapfile
-mkswap /swapfile
+dd if=/dev/zero of=/swapfile bs=1M count=1024 >> /install.log 2>&1
+chmod 600 /swapfile >> /install.log 2>&1
+mkswap /swapfile >> /install.log 2>&1
 echo '/swapfile none swap defaults 0 0' >> /etc/fstab
-swapon -a
+swapon -a  >> /install.log 2>&1
 
 exit 0
 __PAYLOAD_BEGINS__
