@@ -1,5 +1,6 @@
-vcd_user = "<USER>"
-vcd_pass = "<PASSWORD>"
+vcd_user     = "<USER>"
+vcd_pass     = "<PASSWORD>"
+vcd_template = "<OS_TEMPLATE_NAME>"
 
 ssh_key_file = ".vm-ssh-keys/id_ecdsa.pub"
 

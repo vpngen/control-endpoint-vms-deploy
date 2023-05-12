@@ -15,6 +15,10 @@ variable "vcd_pass" {
   sensitive = true
 }
 
+variable "vcd_template" {
+  type = string
+}
+
 variable "vm_name_prefix" {
   type = string
   sensitive = true
@@ -157,7 +161,7 @@ resource "vcd_vm" "control" {
   depends_on    = [vcd_network_isolated_v2.control_net, data.local_file.script-ct_file]
   name          = "${var.vm_name_prefix}ct-${each.value}"
   catalog_name  = "VM Templates"
-  template_name = "Ubuntu 22.04 Server (20220712)"
+  template_name = var.vcd_template
   memory        = 1024
   cpus          = 1
 
@@ -236,7 +240,7 @@ resource "vcd_vm" "endpoint" {
   depends_on    = [vcd_network_isolated_v2.control_net, data.local_file.script-ep_file]
   name          = "${var.vm_name_prefix}ep-${each.value}"
   catalog_name  = "VM Templates"
-  template_name = "Ubuntu 22.04 Server (20220712)"
+  template_name = var.vcd_template
   memory        = var.endpoint_ram_size
   cpus          = var.endpoint_cpu_cores
 
