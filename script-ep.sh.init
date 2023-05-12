@@ -28,10 +28,11 @@ echo "{ipv6_input}" > /ipv6.txt
 echo "{ip_wan_input}" > /ip_wan.txt
 
 for addr in `cat /ipv6.txt | sed 's/\s*,\s*/ /g'`; do
-    if [ ! -z "`fgrep \" ${addr}/\" /etc/netplan/99-netcfg-vmware.yaml`" ]; then
+    netplan_file=`fgrep -H " ${addr}/" /etc/netplan/*.yaml | tail -1 | cut -d \: -f 1`
+    if [ ! -z "${netplan_file}" ]; then
         for addr2 in `cat /ipv6.txt | sed 's/\s*,\s*/ /g'`; do
             if [ "${addr}" != "${addr2}" ]; then
-                sed -i "s#\(\s*- \)${addr}/.*#"\\0\\n\\1${addr2}\/126"#g" /etc/netplan/99-netcfg-vmware.yaml
+                sed -i "s#\(\s*- \)${addr}/.*#"\\0\\n\\1${addr2}\/126"#g" ${netplan_file}
             fi
         done
         break
