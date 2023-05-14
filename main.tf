@@ -165,6 +165,12 @@ resource "vcd_vm" "control" {
   memory        = 1024
   cpus          = 1
 
+  lifecycle {
+    ignore_changes = [
+      template_name,
+    ]
+  }
+
   override_template_disk {
     bus_type        = "paravirtual"
     size_in_mb      = "10240"
@@ -243,6 +249,12 @@ resource "vcd_vm" "endpoint" {
   template_name = var.vcd_template
   memory        = var.endpoint_ram_size
   cpus          = var.endpoint_cpu_cores
+
+  lifecycle {
+    ignore_changes = [
+      template_name,
+    ]
+  }
 
   override_template_disk {
     bus_type        = "paravirtual"
