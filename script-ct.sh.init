@@ -34,6 +34,8 @@ done
 
 netplan apply
 
+sysctl -p/etc/sysctl.d/90-control-additions.conf >> /install.log 2>&1
+
 cat >/etc/systemd/system/socat-apt-proxy.service <<EOF
 [Unit]
 Description=Socat APT Proxy
