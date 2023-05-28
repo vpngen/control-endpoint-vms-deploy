@@ -55,6 +55,8 @@ Server={control_ipv6_list}
 Include=/etc/zabbix/zabbix_agentd.d/*.conf
 EOF
 
+ln -sn /var/log/zabbix-agent /var/log/zabbix >> /install.log 2>&1
+
 systemctl restart rsyslog >> /install.log 2>&1
 systemctl restart systemd-journald >> /install.log 2>&1
 
