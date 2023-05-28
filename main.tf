@@ -190,10 +190,19 @@ resource "vcd_vm" "control" {
     type               = "org"
     name               = var.lan_name
     ip_allocation_mode = "MANUAL"
-    ip                 = format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
-                          floor((local.lan_start_ip_int % 16777216) / 65536),
-                          floor((local.lan_start_ip_int % 65536) / 256),
-                          (local.lan_start_ip_int % 256) + each.value * 2)
+    ### BASH reference: sft=$(( ((intip & 0xFF) + 2 * ( i + 1 + ((intip & 0xFF) + 2 * (i + 1)) / 256 * 2 )) / 256 * 2)) ; echo $((intip+2*(i+sft)))
+    ip                 = format("%d.%d.%d.%d", floor((local.lan_start_ip_int + 2 * (each.value +
+                                floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                                )) / 16777216),
+                          floor(((local.lan_start_ip_int + 2 * (each.value +
+                                floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                                )) % 16777216) / 65536),
+                          floor(((local.lan_start_ip_int + 2 * (each.value +
+                                floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                                )) % 65536) / 256),
+                          (local.lan_start_ip_int + 2 * (each.value +
+                                floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                                )) % 256)
     is_primary         = true
   }
 
@@ -274,15 +283,35 @@ resource "vcd_vm" "endpoint" {
   dynamic "network" {
     for_each = setintersection(
             (var.endpoint_lan_interfaces[0] == "all")
-            ? [ format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
-                floor((local.lan_start_ip_int % 16777216) / 65536),
-                floor((local.lan_start_ip_int % 65536) / 256),
-                (local.lan_start_ip_int % 256) + each.value * 2 + 1) ]
+            ? [
+                format("%d.%d.%d.%d", floor((local.lan_start_ip_int + 2 * (each.value +
+                        floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                        )) / 16777216),
+                    floor(((local.lan_start_ip_int + 2 * (each.value +
+                        floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                        )) % 16777216) / 65536),
+                    floor(((local.lan_start_ip_int + 2 * (each.value +
+                        floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                        )) % 65536) / 256),
+                    (local.lan_start_ip_int + 2 * (each.value +
+                        floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                        )) % 256 + 1)
+            ]
             : var.endpoint_lan_interfaces,
-            [ format("%d.%d.%d.%d", floor(local.lan_start_ip_int / 16777216),
-                floor((local.lan_start_ip_int % 16777216) / 65536),
-                floor((local.lan_start_ip_int % 65536) / 256),
-                (local.lan_start_ip_int % 256) + each.value * 2 + 1) ])
+            [ 
+                format("%d.%d.%d.%d", floor((local.lan_start_ip_int + 2 * (each.value +
+                        floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                        )) / 16777216),
+                    floor(((local.lan_start_ip_int + 2 * (each.value +
+                        floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                        )) % 16777216) / 65536),
+                    floor(((local.lan_start_ip_int + 2 * (each.value +
+                        floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                        )) % 65536) / 256),
+                    (local.lan_start_ip_int + 2 * (each.value +
+                        floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
+                        )) % 256 + 1)
+            ])
     content {
       type               = "org"
       name               = var.lan_name
