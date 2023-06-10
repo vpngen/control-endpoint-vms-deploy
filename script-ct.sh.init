@@ -64,7 +64,7 @@ StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=socat-rsyslog-proxy
 
-ExecStart=/usr/bin/socat -d -d TCP6-LISTEN:514,su=nobody,fork,range=[fdcc::]/7,reuseaddr TCP4:{rsyslog_remote}:514
+ExecStart=/usr/bin/socat -d -d TCP6-LISTEN:514,su=nobody,fork,reuseaddr TCP4:{rsyslog_remote}:514
 Restart=always
 
 [Install]
