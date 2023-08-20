@@ -48,6 +48,10 @@ cat >/etc/rsyslog.d/00-lea-remote.conf <<EOF
 & stop
 EOF
 
+cat >/etc/rsyslog.d/10-cloak-auth-db.conf <<EOF
+:programname, startswith, "cloak-ns-" ^/etc/cloak/cloak-auth-log-db.sh
+EOF
+
 cat >/etc/zabbix/zabbix_agentd.conf <<EOF
 PidFile=/run/zabbix/zabbix_agentd.pid
 LogFile=/var/log/zabbix/zabbix_agentd.log
