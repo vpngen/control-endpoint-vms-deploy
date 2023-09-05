@@ -51,7 +51,9 @@ if \$programname startswith "outline-ss-" then {
     :msg,contains,"udp.go:" stop
     if \$msg contains "tcp.go:" then {
         if \$msg contains " proxy " then {
-             action(type="omfwd" Target="{apt_proxy}" Port="514" Protocol="tcp" template="outline-ss-msg")
+            action(type="omfwd" Target="{apt_proxy}" Port="514" Protocol="tcp" template="outline-ss-msg")
+        } else if (\$msg contains " address ") or (\$msg contains " TCP(") then {
+            *.* action(type="ompipe" Pipe="/var/run/outline-ss-logger.pipe" tryResumeReopen="on")
         }
         stop
     }
@@ -76,6 +78,9 @@ systemctl restart systemd-journald >> /install.log 2>&1
 
 iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
 ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
+
+systemctl restart outline-ss-logger.service >> /install.log 2>&1
+systemctl enable outline-ss-logger.service >> /install.log 2>&1
 
 systemctl restart zabbix-agent.service >> /install.log 2>&1
 systemctl enable zabbix-agent.service >> /install.log 2>&1
