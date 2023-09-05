@@ -45,6 +45,18 @@ netplan apply
 sysctl -p/etc/sysctl.d/90-endpoint-additions.conf >> /install.log 2>&1
 
 cat >/etc/rsyslog.d/00-lea-remote.conf <<EOF
+\$template outline-ss-msg, "<%pri%>%timestamp% %hostname% %programname%: [LEA-DIR]: %msg:R,ERE,1: proxy (.*)--end%\n"
+
+if \$programname startswith "outline-ss-" then {
+    :msg,contains,"udp.go:" stop
+    if \$msg contains "tcp.go:" then {
+        if \$msg contains " proxy " then {
+             action(type="omfwd" Target="{apt_proxy}" Port="514" Protocol="tcp" template="outline-ss-msg")
+        }
+        stop
+    }
+}
+
 :msg,contains,"[LEA-" @@[{apt_proxy}]
 & stop
 EOF
