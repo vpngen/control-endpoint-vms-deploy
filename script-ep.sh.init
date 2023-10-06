@@ -25,6 +25,8 @@ apt-get install -y iptables-persistent ipset ipset-persistent wireguard jq xtabl
     libreswan accel-ppp linux-image-generic linux-headers-generic linux-modules-extra-`uname -r` socat \
     openvpn openvpn-dco-dkms easy-rsa cloak-server cloak-client vg-outline-ss-server >> /install.log 2>&1
 
+apt-get remove --purge --assume-yes --auto-remove multipath-tools snapd >> /install.log 2>&1
+
 echo "{ipv6_input}" > /ipv6.txt
 echo "{ip_wan_input}" > /ip_wan.txt
 
