@@ -34,7 +34,7 @@ jobs:
 
 
   terraform-build:
-    if: startsWith(github.event.pull_request.head.ref, 'feature/')
+    #if: startsWith(github.event.pull_request.head.ref, 'feature/')
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
@@ -72,7 +72,7 @@ jobs:
 
 
   tests:
-    if: startsWith(github.event.pull_request.head.ref, 'feature/')
+    #if: startsWith(github.event.pull_request.head.ref, 'feature/')
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
