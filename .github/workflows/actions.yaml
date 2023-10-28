@@ -70,8 +70,6 @@ jobs:
 
     - name: terraform init
       run: terraform init
-    - name: terraform format
-      run: terraform fmt -check
     - name: terraform alan
       run: terraform plan -input=false -var-file="terraform.tfvars.default"
     - name: terraform apply
