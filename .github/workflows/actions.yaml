@@ -29,7 +29,6 @@ jobs:
         run: docker build -f docker/Dockerfile -t vpngen/runner-img:latest .
 
 
-jobs:
   terraform-build:
     if: startsWith(github.event.pull_request.head.ref, 'feature/')
     runs-on: self-hosted
@@ -53,7 +52,6 @@ jobs:
       run: terraform apply -auto-approve -input=false
 
 
-jobs:
   tests:
     if: startsWith(github.event.pull_request.head.ref, 'feature/')
     runs-on: self-hosted
