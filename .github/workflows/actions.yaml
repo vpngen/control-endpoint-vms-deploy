@@ -2,7 +2,9 @@ name: 'control-endpoint-vms-test'
 
 on:
   push:
-    branches: [ "main" ]
+    branches: #[ "main" ]
+      - main
+      - feature/
   pull_request:
     branches: [ "main" ]
 
@@ -41,16 +43,31 @@ jobs:
         shell: bash
 
     steps:
-    - name: Checkout
+    - name: checkout
       uses: actions/checkout@v3
-    - name: Terraform Init
+    - name: set variables
+      run: |
+        sed -i 's/<ORG>/${{ vars.TEST_ORG }}/g' terraform.tfvars.default
+        sed -i 's/<VDC>/${{ vars.TEST_VDC }}/g' terraform.tfvars.default
+        sed -i 's/<USER>/${{ vars.TEST_USER }}/g' terraform.tfvars.default
+        sed -i 's/<PASSWORD>/${{ secrets.TEST_PASSWORD }}/g' terraform.tfvars.default
+        sed -i 's/<OS_TEMPLATE_NAME>/${{ vars.TEST_OS_TEMPLATE_NAME }}/g' terraform.tfvars.default
+        sed -i 's/<OS_TEMPLATES_CATALOG>/${{ vars.TEST_OS_TEMPLATES_CATALOG }}/g' terraform.tfvars.default
+        sed -i 's/<SSH_KEY_FILE>/${{ vars.TEST_SSH_KEY_FILE }}/g' terraform.tfvars.default
+        sed -i 's/<LAN_NAME>/${{ vars.TEST_LAN_NAME }}/g' terraform.tfvars.default
+        sed -i 's/<LAN_MANAGEMENT_IP>/${{ vars.TEST_LAN_MANAGEMENT_IP }}/g' terraform.tfvars.default
+        sed -i 's/<LAN_LOWEST_IP_ADDRESS>/${{ vars.TEST_LAN_LOWEST_IP_ADDRESS }}/g' terraform.tfvars.default
+        sed -i 's/<PREFIX>/${{ vars.TEST_PREFIX }}/g' terraform.tfvars.default
+        sed -i 's/<URL>/${{ vars.TEST_URL }}/g' terraform.tfvars.default
+        sed -i 's/<ZABBIX_SERVER_IP>/${{ vars.TEST_ZABBIX_SERVER_IP }}/g' terraform.tfvars.default
+    - name: terraform init
       run: terraform init
-    - name: Terraform Format
+    - name: terraform format
       run: terraform fmt -check
-    - name: Terraform Plan
-      run: terraform plan -input=false
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -input=false
+    - name: terraform alan
+      run: terraform plan -input=false -var-file="terraform.tfvars.default"
+    - name: terraform apply
+      run: terraform apply -auto-approve -input=false -var-file="terraform.tfvars.default"
 
 
   tests:
