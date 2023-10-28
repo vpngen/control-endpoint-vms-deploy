@@ -1,0 +1,77 @@
+name: 'control-endpoint-vms-test'
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+
+jobs:
+  docker-build:
+    runs-on: self-hosted
+    container: vpngen/runner-img
+    environment: test
+
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+            filters: |
+              docker:
+                - 'docker/**'
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        if: steps.changes.outputs.src == 'true'
+        run: docker build -f docker/Dockerfile -t vpngen/runner-img:latest .
+
+
+jobs:
+  terraform-build:
+    if: startsWith(github.event.pull_request.head.ref, 'feature/')
+    runs-on: self-hosted
+    container: vpngen/runner-img
+    environment: test
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Terraform Init
+      run: terraform init
+    - name: Terraform Format
+      run: terraform fmt -check
+    - name: Terraform Plan
+      run: terraform plan -input=false
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -input=false
+
+
+jobs:
+  tests:
+    if: startsWith(github.event.pull_request.head.ref, 'feature/')
+    runs-on: self-hosted
+    container: vpngen/runner-img
+    environment: test
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Poetry install
+      run: poetry install
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest
