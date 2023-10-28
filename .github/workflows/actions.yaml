@@ -54,13 +54,15 @@ jobs:
         sed -i 's/<PASSWORD>/${{ secrets.TEST_PASSWORD }}/' terraform.tfvars.default
         sed -i 's/<OS_TEMPLATE_NAME>/${{ vars.TEST_OS_TEMPLATE_NAME }}/' terraform.tfvars.default
         sed -i 's/<OS_TEMPLATES_CATALOG>/${{ vars.TEST_OS_TEMPLATES_CATALOG }}/' terraform.tfvars.default
-        sed -i 's/<SSH_KEY_FILE>/${{ vars.TEST_SSH_KEY_FILE }}/' terraform.tfvars.default
+        sed -i 's\<SSH_KEY_FILE>\${{ vars.TEST_SSH_KEY_FILE }}\' terraform.tfvars.default
         sed -i 's/<LAN_NAME>/${{ vars.TEST_LAN_NAME }}/' terraform.tfvars.default
         sed -i 's/<LAN_MANAGEMENT_IP>/${{ vars.TEST_LAN_MANAGEMENT_IP }}/' terraform.tfvars.default
         sed -i 's/<LAN_LOWEST_IP_ADDRESS>/${{ vars.TEST_LAN_LOWEST_IP_ADDRESS }}/' terraform.tfvars.default
         sed -i 's/<PREFIX>/${{ vars.TEST_PREFIX }}/' terraform.tfvars.default
-        sed -i 's/<URL>/${{ vars.TEST_URL }}/' terraform.tfvars.default
+        sed -i 's\<URL>\${{ vars.TEST_URL }}\' terraform.tfvars.default
         sed -i 's/<ZABBIX_SERVER_IP>/${{ vars.TEST_ZABBIX_SERVER_IP }}/' terraform.tfvars.default
+        sed -i 's/<WAN_NAME_IP_NET_GW>/${{ vars.TEST_WAN_NAME_IP_NET_GW }}/' terraform.tfvars.default
+        sed -i 's/<ENDPOINT_LAN_INTERFACES>/${{ vars.TEST_ENDPOINT_LAN_INTERFACES }}/' terraform.tfvars.default
     - name: terraform init
       run: terraform init
     - name: terraform format

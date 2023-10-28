@@ -2,8 +2,17 @@ terraform {
   required_providers {
     vcd = {
       source = "vmware/vcd"
+      version = "3.7"
     }
   }
+}
+
+variable "vcd_org" {
+  type = string
+}
+
+variable "vcd_vdc" {
+  type = string
 }
 
 variable "vcd_user" {
@@ -19,6 +28,9 @@ variable "vcd_template" {
   type = string
 }
 
+variable "vcd_templates_catalog" {
+  type = string
+}
 variable "vm_name_prefix" {
   type = string
   sensitive = true
@@ -86,8 +98,8 @@ provider "vcd" {
   user                 = var.vcd_user
   password             = var.vcd_pass
   auth_type            = "integrated"
-  org                  = "highload"
-  vdc                  = "vdc_highload"
+  org                  = var.vcd_org
+  vdc                  = var.vcd_vdc
   url                  = "https://my.wolkee.cloud/api"
 #  max_retry_timeout    = var.vcd_max_retry_timeout
   allow_unverified_ssl = true
@@ -103,7 +115,7 @@ locals {
 
 resource "vcd_network_isolated_v2" "control_net" {
   for_each      = toset([for vm_num in range(0, local.vm_pairs) : tostring(vm_num)])
-  org           = "highload"
+  org           = var.vcd_org
   name          = "${var.ctrl_name_prefix}-${each.value}"
   gateway       = "${var.ctrl_ipv6_high_hex}:0:0:0:0:0:0:1"
   prefix_length = 16
@@ -160,7 +172,7 @@ resource "vcd_vm" "control" {
   for_each      = toset([for vm_num in range(0, local.vm_pairs) : tostring(vm_num)])
   depends_on    = [vcd_network_isolated_v2.control_net, data.local_file.script-ct_file]
   name          = "${var.vm_name_prefix}ct-${each.value}"
-  catalog_name  = "VM Templates"
+  catalog_name  = var.vcd_templates_catalog
   template_name = var.vcd_template
   memory        = 1024
   cpus          = 1
@@ -254,7 +266,7 @@ resource "vcd_vm" "endpoint" {
   for_each      = toset([for vm_num in range(0, local.vm_pairs) : tostring(vm_num)])
   depends_on    = [vcd_network_isolated_v2.control_net, data.local_file.script-ep_file]
   name          = "${var.vm_name_prefix}ep-${each.value}"
-  catalog_name  = "VM Templates"
+  catalog_name  = var.vcd_templates_catalog
   template_name = var.vcd_template
   memory        = var.endpoint_ram_size
   cpus          = var.endpoint_cpu_cores
@@ -298,7 +310,7 @@ resource "vcd_vm" "endpoint" {
                         )) % 256 + 1)
             ]
             : var.endpoint_lan_interfaces,
-            [ 
+            [
                 format("%d.%d.%d.%d", floor((local.lan_start_ip_int + 2 * (each.value +
                         floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1 + floor(((local.lan_start_ip_int % 256) + 2 * (each.value + 1)) / 256) * 2 )) / 256) * 2
                         )) / 16777216),
