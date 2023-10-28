@@ -1,21 +1,24 @@
+vcd_org     = "<ORG>"
+vcd_vdc     = "<VDC>"
 vcd_user     = "<USER>"
 vcd_pass     = "<PASSWORD>"
 vcd_template = "<OS_TEMPLATE_NAME>"
+vcd_templates_catalog = "<OS_TEMPLATES_CATALOG>"
 
-ssh_key_file = ".vm-ssh-keys/id_ecdsa.pub"
+ssh_key_file = "<SSH_KEY_FILE>"
 
 wan_name_ip_net_gw = [
     ["<WAN_NETWORK_NAME>", "<PUBLIC_IP>", <PUBLIC_CIDR>, "<PUBLIC_GATEWAY>"],
 ]
-wan_ips_per_vm = 3
+
+wan_ips_per_vm = 2
 
 lan_name = "<LAN_NAME>"
 lan_mgmt_ip = "<LAN_MANAGEMENT_IP>"
 lan_start_ip = "<LAN_LOWEST_IP_ADDRESS>"
 
-vm_name_prefix = "vm-"
-
-ctrl_name_prefix = "control_ipv6"
+vm_name_prefix = "<PREFIX>-vm"
+ctrl_name_prefix = "<PREFIX>_ipv6"
 ctrl_ipv6_high_hex = "fdcc"
 
 keydesk_deb_repo_string = "deb <URL> stable main"
