@@ -3,8 +3,9 @@ name: 'control-endpoint-vms-test'
 on:
   push:
     branches: #[ "main" ]
-      - main
-      - feature/
+      - 'main'
+      - 'feature/'
+      - '**'
   pull_request:
     branches: [ "main" ]
 
