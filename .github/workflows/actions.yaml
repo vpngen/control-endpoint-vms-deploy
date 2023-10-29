@@ -67,7 +67,8 @@ jobs:
         echo $TEST_WAN_NAME_IP_NET_GW > ips.txt
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
       env:
-        TEST_WAN_NAME_IP_NET_GW: ${{ vars.TEST_WAN_NAME_IP_NET_GW }}
+        TEST_WAN_NAME_IP_NET_GW: |
+          ${{ vars.TEST_WAN_NAME_IP_NET_GW }}
 
     - name: terraform init
       run: terraform init
