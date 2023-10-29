@@ -64,8 +64,8 @@ jobs:
         sed -i 's\<URL>\${{ vars.TEST_URL }}\' terraform.tfvars.default
         sed -i 's/<ZABBIX_SERVER_IP>/${{ vars.TEST_ZABBIX_SERVER_IP }}/' terraform.tfvars.default
         sed -i 's/<ENDPOINT_LAN_INTERFACES>/${{ vars.TEST_ENDPOINT_LAN_INTERFACES }}/' terraform.tfvars.default
-        echo ${{ vars.TEST_WAN_NAME_IP_NET_GW_1 }} > ips.txt
-        echo ${{ vars.TEST_WAN_NAME_IP_NET_GW_2 }} >> ips.txt
+        echo '["WAN_195.133.0.104_29", "195.133.0.107", 29, "195.133.0.105"],' > ips.txt
+        echo '["WAN_195.133.0.104_29", "195.133.0.108", 29, "195.133.0.105"]' >> ips.txt
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
 
     - name: terraform init
