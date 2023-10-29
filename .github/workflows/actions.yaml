@@ -65,12 +65,12 @@ jobs:
         sed -i 's/<ZABBIX_SERVER_IP>/${{ vars.TEST_ZABBIX_SERVER_IP }}/' terraform.tfvars.default
         sed -i 's/<ENDPOINT_LAN_INTERFACES>/${{ vars.TEST_ENDPOINT_LAN_INTERFACES }}/' terraform.tfvars.default
         echo ${{ vars.TEST_WAN_NAME_IP_NET_GW_1 }} > ips.txt
-        echo ${{ vars.TEST_WAN_NAME_IP_NET_GW_2 }} > ips.txt
+        echo ${{ vars.TEST_WAN_NAME_IP_NET_GW_2 }} >> ips.txt
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
 
     - name: terraform init
       run: terraform init
-    - name: terraform alan
+    - name: terraform plan
       run: terraform plan -input=false -var-file="terraform.tfvars.default"
     - name: terraform apply
       run: terraform apply -auto-approve -input=false -var-file="terraform.tfvars.default"
