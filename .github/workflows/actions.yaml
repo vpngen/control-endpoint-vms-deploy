@@ -79,19 +79,18 @@ jobs:
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: 3.11
 
     steps:
     - uses: actions/checkout@v3
-    - name: Poetry install
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    - name: poetry install
       run: poetry install
     - name: Lint with flake8
       run: |
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
+    - name: test with pytest
       run: |
         pytest
