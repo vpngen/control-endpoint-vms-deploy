@@ -68,7 +68,7 @@ jobs:
           echo 'tee ips.txt <<EOF' 
           echo ${{ vars.TEST_WAN_NAME_IP_NET_GW }}
           echo EOF
-        }
+        } >> "$GITHUB_ENV"
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
 
     - name: terraform init
