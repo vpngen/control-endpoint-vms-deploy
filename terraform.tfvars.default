@@ -8,7 +8,7 @@ vcd_templates_catalog = "<OS_TEMPLATES_CATALOG>"
 ssh_key_file = "<SSH_KEY_FILE>"
 
 wan_name_ip_net_gw = [
-    ["<WAN_NETWORK_NAME>", "<PUBLIC_IP>", <PUBLIC_CIDR>, "<PUBLIC_GATEWAY>"],
+    <WAN_NAME_IP_NET_GW>
 ]
 
 wan_ips_per_vm = 2
@@ -28,4 +28,4 @@ zabbix_server = "<ZABBIX_SERVER_IP>"
 endpoint_cpu_cores = 1
 endpoint_ram_size = 1024 # Megabytes
 
-endpoint_lan_interfaces = [] ### The list of LAN IP addresses to enable for endpoint VMs
+endpoint_lan_interfaces = ["<ENDPOINT_LAN_INTERFACES>"] ### The list of LAN IP addresses to enable for endpoint VMs
