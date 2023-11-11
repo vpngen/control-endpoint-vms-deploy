@@ -1,16 +1,16 @@
 import pytest
 import paramiko
 
-
-
-hosts = ["10.255.0.4", "10.255.0.5"]
+vm_ct = '10.255.0.4'
+vm_ep = '10.255.0.5'
+hosts = [vm_ct, vm_ep]
 port = 22  # Default SSH port
 username = 'ubuntu'
 private_key_path = '/root/.ssh/id_rsa'
 
-
 # List of services to check
-services_to_check = ["socat-apt-proxy", "socat-rsyslog-proxy", "socat-zabbix-proxy", "brigades_backup"]
+ct_services_to_check = ["socat-apt-proxy", "socat-rsyslog-proxy", "socat-zabbix-proxy"]
+ep_services_to_check = ["zabbix-agent", "outline-ss-logger", "wg-mng.socket"]
 
 # Specify the private key for authentication
 private_key = paramiko.RSAKey(filename=private_key_path)
@@ -25,11 +25,17 @@ for host in hosts:
             username,
             private_key_path
         )
-
-        for service in services_to_check:
-            command = f'systemctl is-active {service}'
-            stdin, stdout, stderr = ssh.exec_command(command)
-            status = stdout.read().decode('utf-8').strip()
-            assert status == 'active'
+        if host == vm_ct:
+            for service in ct_services_to_check:
+                command = f'systemctl is-active {service}'
+                stdin, stdout, stderr = ssh.exec_command(command)
+                status = stdout.read().decode('utf-8').strip()
+                assert status == 'active'
+        else:
+            for service in ep_services_to_check:
+                command = f'systemctl is-active {service}'
+                stdin, stdout, stderr = ssh.exec_command(command)
+                status = stdout.read().decode('utf-8').strip()
+                assert status == 'active'
 
         ssh.close()
