@@ -1,12 +1,10 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ENV TZ=CET
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
-
 RUN apt update \
-    && apt install -y wget git vim curl gnupg software-properties-common \
+    && apt install -y wget git vim curl gnupg software-properties-common  linux-headers-$(uname -r) \
             dnsutils iptables openvpn strongswan xl2tpd ppp findutils openresolv iproute2 wireguard-tools \
             build-essential libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
 
@@ -23,9 +21,14 @@ RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/s
 RUN apt update && apt install -y terraform
 
 RUN echo "#!/bin/sh" > /entrypoint.sh \
+    && echo "sysctl net.ipv4.conf.all.src_valid_mark=1"  >> /entrypoint.sh \
+    && echo "sysctl net.ipv6.conf.all.disable_ipv6=0"  >> /entrypoint.sh \
+    && echo "modprobe wireguard" >> /entrypoint.sh \
     && echo "while true; do" >> /entrypoint.sh \
     && echo "    sleep 3600" >> /entrypoint.sh \
     && echo "done" >> /entrypoint.sh
+
+RUN ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
 
 RUN chmod +x /entrypoint.sh
 
