@@ -2,7 +2,10 @@ name: 'control-endpoint-vms-test'
 
 on:
   push:
-    branches: [ "main" ]
+    branches: #[ "main" ]
+      - 'main'
+      - 'feature/'
+      - '**'
   pull_request:
     branches: [ "main" ]
 
@@ -13,63 +16,87 @@ permissions:
 jobs:
   docker-build:
     runs-on: self-hosted
-    container: vpngen/runner-img
     environment: test
 
+
     steps:
+      - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: changes
         with:
             filters: |
               docker:
                 - 'docker/**'
-      - uses: actions/checkout@v3
-      - name: Build the Docker image
+      - name: build the docker image
         if: steps.changes.outputs.src == 'true'
-        run: docker build -f docker/Dockerfile -t vpngen/runner-img:latest .
+        run: docker build -f docker/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
+      - name: push the docker image
+        run: docker push 127.0.0.1:5000/runner-img:latest
 
 
   terraform-build:
-    if: startsWith(github.event.pull_request.head.ref, 'feature/')
+    #if: startsWith(github.event.pull_request.head.ref, 'feature/')
     runs-on: self-hosted
-    container: vpngen/runner-img
+    container: 127.0.0.1:5000/runner-img:latest
     environment: test
+    needs: docker-build
+
 
     defaults:
       run:
         shell: bash
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Terraform Init
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.TEST_PAT }}
+    - name: set variables
+      run: |
+        sed -i 's/<ORG>/${{ vars.TEST_ORG }}/' terraform.tfvars.default
+        sed -i 's/<VDC>/${{ vars.TEST_VDC }}/' terraform.tfvars.default
+        sed -i 's/<USER>/${{ vars.TEST_USER }}/' terraform.tfvars.default
+        sed -i 's/<PASSWORD>/${{ secrets.TEST_PASSWORD }}/' terraform.tfvars.default
+        sed -i 's/<OS_TEMPLATE_NAME>/${{ vars.TEST_OS_TEMPLATE_NAME }}/' terraform.tfvars.default
+        sed -i 's/<OS_TEMPLATES_CATALOG>/${{ vars.TEST_OS_TEMPLATES_CATALOG }}/' terraform.tfvars.default
+        sed -i 's\<SSH_KEY_FILE>\${{ vars.TEST_SSH_KEY_FILE }}\' terraform.tfvars.default
+        sed -i 's/<LAN_NAME>/${{ vars.TEST_LAN_NAME }}/' terraform.tfvars.default
+        sed -i 's/<LAN_MANAGEMENT_IP>/${{ vars.TEST_LAN_MANAGEMENT_IP }}/' terraform.tfvars.default
+        sed -i 's/<LAN_LOWEST_IP_ADDRESS>/${{ vars.TEST_LAN_LOWEST_IP_ADDRESS }}/' terraform.tfvars.default
+        sed -i 's/<PREFIX>/${{ vars.TEST_PREFIX }}/' terraform.tfvars.default
+        sed -i 's\<URL>\${{ vars.TEST_URL }}\' terraform.tfvars.default
+        sed -i 's/<ZABBIX_SERVER_IP>/${{ vars.TEST_ZABBIX_SERVER_IP }}/' terraform.tfvars.default
+        sed -i 's/<ENDPOINT_LAN_INTERFACES>/${{ vars.TEST_ENDPOINT_LAN_INTERFACES }}/' terraform.tfvars.default
+        echo '["WAN_195.133.0.104_29", "195.133.0.107", 29, "195.133.0.105"],' > ips.txt
+        echo '["WAN_195.133.0.104_29", "195.133.0.108", 29, "195.133.0.105"]' >> ips.txt
+        sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
+
+    - name: terraform init
       run: terraform init
-    - name: Terraform Format
-      run: terraform fmt -check
-    - name: Terraform Plan
-      run: terraform plan -input=false
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -input=false
+    - name: terraform plan
+      run: terraform plan -input=false -var-file="terraform.tfvars.default"
+    - name: terraform apply
+      run: terraform apply -auto-approve -input=false -var-file="terraform.tfvars.default"
 
 
   tests:
-    if: startsWith(github.event.pull_request.head.ref, 'feature/')
+    #if: startsWith(github.event.pull_request.head.ref, 'feature/')
     runs-on: self-hosted
-    container: vpngen/runner-img
+    container: 127.0.0.1:5000/runner-img:latest
     environment: test
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+    needs: terraform-build
 
     steps:
     - uses: actions/checkout@v3
-    - name: Poetry install
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    - name: poetry install
       run: poetry install
     - name: Lint with flake8
       run: |
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
+    - name: test with pytest
       run: |
         pytest
