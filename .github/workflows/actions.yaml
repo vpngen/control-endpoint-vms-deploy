@@ -20,20 +20,20 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-            filters: |
-              docker:
-                - 'docker/**'
-            token: ${{ secrets.TEST_PAT }}
-            list-files: none
-            initial-fetch-depth: 100
+#      - uses: dorny/paths-filter@v2
+#        id: changes
+#        with:
+#            filters: |
+#              docker:
+#                - 'docker/**'
+#            token: ${{ secrets.TEST_PAT }}
+#            list-files: none
+#            initial-fetch-depth: 100
       - name: Build the Docker image
-        if: steps.changes.outputs.docker == 'true'
+#        if: steps.changes.outputs.docker == 'true'
         run: docker build -f docker/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
       - name: push the docker image
-        if: steps.changes.outputs.docker == 'true'
+#        if: steps.changes.outputs.docker == 'true'
         run: docker push 127.0.0.1:5000/runner-img:latest
 
 
