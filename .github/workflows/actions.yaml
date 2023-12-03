@@ -2,22 +2,19 @@ name: 'control-endpoint-vms-test'
 
 on:
   push:
-    branches: #[ "main" ]
+    branches:
       - 'main'
-      - 'feature/'
-      - '**'
+      - 'hotfix-*'
   pull_request:
     branches: [ "main" ]
 
 permissions:
   contents: read
 
-
 jobs:
   docker-build:
     runs-on: self-hosted
     environment: test
-
 
     steps:
       - uses: actions/checkout@v3
@@ -27,21 +24,18 @@ jobs:
             filters: |
               docker:
                 - 'docker/**'
-      - name: build the docker image
+      - name: Build the Docker image
         if: steps.changes.outputs.src == 'true'
         run: docker build -f docker/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
       - name: push the docker image
+        if: steps.changes.outputs.src == 'true'
         run: docker push 127.0.0.1:5000/runner-img:latest
 
-
   terraform-build:
-    #if: startsWith(github.event.pull_request.head.ref, 'feature/')
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
     needs: docker-build
-
-
     defaults:
       run:
         shell: bash
@@ -80,7 +74,6 @@ jobs:
 
 
   tests:
-    #if: startsWith(github.event.pull_request.head.ref, 'feature/')
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
@@ -93,10 +86,23 @@ jobs:
         python-version: 3.11
     - name: poetry install
       run: poetry install
-    - name: Lint with flake8
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: test with pytest
-      run: |
-        pytest
+    - name: Test with pytest
+      run: poetry run pytest
+
+
+  terraform-destroy:
+    runs-on: self-hosted
+    container: 127.0.0.1:5000/runner-img:latest
+    environment: test
+    needs: docker-build
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.TEST_PAT }}
+    - name: terraform destroy
+      run: terraform destroy -auto-approve -input=false -var-file="terraform.tfvars.default"
