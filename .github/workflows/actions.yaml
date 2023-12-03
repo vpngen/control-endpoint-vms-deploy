@@ -49,14 +49,6 @@ jobs:
             echo "No changes found in docker directory. Skipping the next steps."
           fi
 
-changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^docker/')
-if [ -n "$changed_files" ]; then
-  docker build -f docker/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
-  docker push 127.0.0.1:5000/runner-img:latest
-else
-  echo "No changes found in the docker directory. Skipping the next steps."
-fi
-
   terraform-build:
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
