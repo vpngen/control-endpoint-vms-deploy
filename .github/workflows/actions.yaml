@@ -17,24 +17,37 @@ jobs:
     environment: test
     permissions:
       pull-requests: read
-
+      contents: read
+#    with:
+#      token: ${{ secrets.TEST_PAT }}
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: dorny/paths-filter@v2
+#        id: changes
+#        with:
+#            filters: |
+#              docker:
+#                - 'docker/**'
+#            token: ${{ secrets.TEST_PAT }}
+#            list-files: none
+#            initial-fetch-depth: 100
+#      - name: Build the Docker image
+#        if: steps.changes.outputs.docker == 'true'
+#        run: docker build -f docker/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
+#      - name: push the docker image
+#        if: steps.changes.outputs.docker == 'true'
+#        run: docker push 127.0.0.1:5000/runner-img:latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-            filters: |
-              docker:
-                - 'docker/**'
-            token: ${{ secrets.TEST_PAT }}
-            list-files: none
-            initial-fetch-depth: 100
       - name: Build the Docker image
-        if: steps.changes.outputs.docker == 'true'
-        run: docker build -f docker/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
-      - name: push the docker image
-        if: steps.changes.outputs.docker == 'true'
-        run: docker push 127.0.0.1:5000/runner-img:latest
+        run: |
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^docker/')
+          if [ -n "$changed_files" ]; then
+            docker build -f docker/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
+            docker docker push 127.0.0.1:5000/runner-img:latest
+          else
+            echo "No changes found in docker directory. Skipping the next steps."
+          fi
 
   terraform-build:
     runs-on: self-hosted
