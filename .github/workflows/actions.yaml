@@ -106,3 +106,4 @@ jobs:
         token: ${{ secrets.TEST_PAT }}
     - name: terraform destroy
       run: terraform destroy -auto-approve -input=false -var-file="terraform.tfvars.default"
+

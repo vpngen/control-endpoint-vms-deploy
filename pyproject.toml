@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "control-endpoint-vms-deploy"
+version = "0.1.0"
+description = ""
+authors = ["niktheworker <niktheworker@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pytest = "^7.4.3"
+paramiko = "^3.3.1"
+requests = "^2.31.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
