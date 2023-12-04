@@ -20,9 +20,9 @@ RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/s
 
 RUN apt update && apt install -y terraform
 
-RUN mkdir -p .vm-nacl-keys/key-pair.${each.value}/etc \
-        && nacl genkey > $HOME/.vm-nacl-keys/key-pair.${each.value}/vg-endpoint.json \
-        && nacl pubkey < $HOME/.vm-nacl-keys/key-pair.${each.value}/vg-endpoint.json > $HOME/.vm-nacl-keys/key-pair.${each.value}/etc/vg-router.json
+RUN mkdir -p .vm-nacl-keys/key-pair.0/etc \
+        && nacl genkey > $HOME/.vm-nacl-keys/key-pair.0/vg-endpoint.json \
+        && nacl pubkey < $HOME/.vm-nacl-keys/key-pair.0/vg-endpoint.json > $HOME/.vm-nacl-keys/key-pair.0/etc/vg-router.json
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH "$PATH:/root/.local/bin"
@@ -39,5 +39,4 @@ RUN ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
 
 RUN chmod +x /entrypoint.sh
 
-#test
 ENTRYPOINT [ "/entrypoint.sh" ]
