@@ -20,7 +20,7 @@ RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/s
 
 RUN apt update && apt install -y terraform
 
-RUN mkdir -p .vm-nacl-keys/key-pair.0/etc \
+RUN mkdir -p $HOME/.vm-nacl-keys/key-pair.0/etc \
         && nacl genkey > $HOME/.vm-nacl-keys/key-pair.0/vg-endpoint.json \
         && nacl pubkey < $HOME/.vm-nacl-keys/key-pair.0/vg-endpoint.json > $HOME/.vm-nacl-keys/key-pair.0/etc/vg-router.json
 
