@@ -8,32 +8,24 @@ on:
   pull_request:
     branches: [ "main" ]
 
-permissions:
-  contents: read
-
 jobs:
   docker-build:
     runs-on: self-hosted
     environment: test
-    permissions:
-      pull-requests: read
-      contents: read
+
     steps:
       - uses: actions/checkout@v3
-#      - uses: dorny/paths-filter@v2
-#        id: changes
-#        with:
-#            filters: |
-#              docker:
-#                - 'docker/**'
-#            token: ${{ secrets.TEST_PAT }}
-#            list-files: none
-#            initial-fetch-depth: 100
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+            filters: |
+              docker:
+                - 'docker/**'
       - name: Build the Docker image
-#        if: steps.changes.outputs.docker == 'true'
+        if: steps.changes.outputs.docker == 'true'
         run: docker build -f docker/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
       - name: push the docker image
-#        if: steps.changes.outputs.docker == 'true'
+        if: steps.changes.outputs.docker == 'true'
         run: docker push 127.0.0.1:5000/runner-img:latest
 
 
@@ -41,6 +33,7 @@ jobs:
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
+    if: ${{ always() }}
     needs: docker-build
     defaults:
       run:
@@ -72,9 +65,9 @@ jobs:
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
     - name: link to .vm-nacl-keys
       run: ln -s /root/.vm-nacl-keys /__w/control-endpoint-vms-deploy/control-endpoint-vms-deploy/.vm-nacl-keys
-    - name: terraform init
+    - name: terraform init -var-file="terraform.tfvars.default"
       run: terraform init
-    - name: terraform plan
+    - name: terraform plan -var-file="terraform.tfvars.default"
       run: terraform plan -input=false -var-file="terraform.tfvars.default"
     - name: terraform apply
       run: terraform apply -auto-approve -input=false -var-file="terraform.tfvars.default"
@@ -108,9 +101,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      with:
-        submodules: true
-        token: ${{ secrets.TEST_PAT }}
     - name: terraform destroy
       run: terraform destroy -auto-approve -input=false -var-file="terraform.tfvars.default"
 
