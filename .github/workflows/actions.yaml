@@ -12,10 +12,7 @@ jobs:
   docker-build:
     runs-on: self-hosted
     environment: test
-    permissions:
-      contents: write
-      repository-projects: write
-      pull-requests: write
+    permissions: write-all
 
     steps:
       - uses: actions/checkout@v3
