@@ -13,6 +13,8 @@ jobs:
     runs-on: self-hosted
     environment: test
     permissions:
+      contents: read
+      repository-projects: read
       pull-requests: read
 
     steps:
