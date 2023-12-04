@@ -67,7 +67,8 @@ jobs:
         echo '["WAN_195.133.0.104_29", "195.133.0.107", 29, "195.133.0.105"],' > ips.txt
         echo '["WAN_195.133.0.104_29", "195.133.0.108", 29, "195.133.0.105"]' >> ips.txt
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
-
+    - name: nacl keys symlink
+      run: ln -s /root/.vm-nacl-keys /__w/control-endpoint-vms-deploy/control-endpoint-vms-deploy/.vm-nacl-keys
     - name: terraform init
       run: terraform init
     - name: terraform plan
