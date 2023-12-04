@@ -12,7 +12,8 @@ jobs:
   docker-build:
     runs-on: self-hosted
     environment: test
-    permissions: write-all
+    permissions:
+      pull-requests: read
 
     steps:
       - uses: actions/checkout@v3
