@@ -87,7 +87,7 @@ jobs:
       volumes:
         - /lib/modules:/lib/modules
         - /root/.ssh/:/root/.ssh
-      options:  --privileged --ip 172.18.0.10 --name=test-runner
+      options:  --privileged --name=test-runner
     environment: test
     needs: terraform-build
 
