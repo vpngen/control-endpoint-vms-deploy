@@ -87,7 +87,7 @@ jobs:
       volumes:
         - /lib/modules:/lib/modules
         - /root/.ssh/:/root/.ssh
-      options:  --privileged --name=test-runner
+      options:  --privileged
     environment: test
     needs: terraform-build
 
@@ -109,7 +109,7 @@ jobs:
 
     steps:
     - name: connecting runner container to client nets
-      run: sleep 10 && docker network connect test test-runner
+      run: sleep 10 && DCKRNAME=$(docker ps -a | grep runnerimglatest | awk '{print $1}') && docker network connect test $DCKRNAME
     - name: run ipsec container
       run: docker  run -d --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 127.0.0.1:5000/ipsec
 
