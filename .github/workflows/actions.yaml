@@ -9,7 +9,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  docker:
+  docker-build:
     runs-on: self-hosted
     environment: test
     permissions: write-all
@@ -34,16 +34,13 @@ jobs:
       - name: push the ipsec image
         if: steps.changes.outputs.docker == 'true'
         run: docker push 127.0.0.1:5000/ipsec-img:latest
-      - name: run ipsec container
-        run: docker  run -d --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 127.0.0.1:5000/ipsec
-
 
   terraform-build:
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
     if: ${{ always() }}
-    needs: docker
+    needs: docker-build
     defaults:
       run:
         shell: bash
@@ -105,16 +102,19 @@ jobs:
       run: poetry run pytest test_deploy.py test_brigade.py test_keydesk_api.py
     - run: poetry run pytest test_connection.py
 
-  tests-networks:
+  client-containers:
     runs-on: self-hosted
     environment: test
     needs: terraform-build
 
     steps:
-    - name: workaround
+    - name: connecting runner container to client nets
       run: sleep 10 && docker network connect test test-runner
+    - name: run ipsec container
+      run: docker  run -d --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 127.0.0.1:5000/ipsec
 
-  terraform-destroy:
+
+  destroy:
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
@@ -127,4 +127,6 @@ jobs:
     - uses: actions/checkout@v3
     - name: terraform destroy
       run: terraform destroy -auto-approve -input=false -var-file="terraform.tfvars.default"
+    - name: remove ipsec container
+      run: docker rm ipsec -f
 
