@@ -90,7 +90,7 @@ jobs:
       volumes:
         - /lib/modules:/lib/modules
         - /root/.ssh/:/root/.ssh
-      options:  --privileged --net test --ip 172.18.0.10
+      options:  --privileged --ip 172.18.0.10 --name=test-runner
     environment: test
     needs: terraform-build
 
@@ -105,6 +105,13 @@ jobs:
       run: poetry run pytest test_deploy.py test_brigade.py test_keydesk_api.py
     - run: poetry run pytest test_connection.py
 
+  tests-networks:
+    runs-on: self-hosted
+    environment: test
+
+    steps:
+    - name: workaround
+      run: docker network connect test test-runner
 
   terraform-destroy:
     runs-on: self-hosted
