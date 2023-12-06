@@ -108,10 +108,11 @@ jobs:
   tests-networks:
     runs-on: self-hosted
     environment: test
+    needs: terraform-build
 
     steps:
     - name: workaround
-      run: docker network connect test test-runner
+      run: sleep 10 && docker network connect test test-runner
 
   terraform-destroy:
     runs-on: self-hosted
