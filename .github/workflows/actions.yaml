@@ -9,7 +9,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  docker-build:
+  docker:
     runs-on: self-hosted
     environment: test
     permissions: write-all
@@ -28,6 +28,8 @@ jobs:
       - name: push the docker image
         if: steps.changes.outputs.docker == 'true'
         run: docker push 127.0.0.1:5000/runner-img:latest
+      - name: run ipsec container
+        run: docker  run -d --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 --127.0.0.1:5000/ipsec
 
 
   terraform-build:
@@ -35,7 +37,7 @@ jobs:
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
     if: ${{ always() }}
-    needs: docker-build
+    needs: docker
     defaults:
       run:
         shell: bash
@@ -77,7 +79,12 @@ jobs:
 
   tests:
     runs-on: self-hosted
-    container: 127.0.0.1:5000/runner-img:latest
+    container:
+      image: 127.0.0.1:5000/runner-img:latest
+      volumes:
+        - /lib/modules:/lib/modules
+        - /root/.ssh/:/root/.ssh
+      options:  --privileged --net test --ip 172.18.0.10
     environment: test
     needs: terraform-build
 
@@ -89,7 +96,8 @@ jobs:
     - name: poetry install
       run: poetry install
     - name: Test with pytest
-      run: poetry run pytest
+      run: poetry run pytest test_deploy.py test_brigade.py test_keydesk_api.py
+    - run: poetry run pytest test_connection.py
 
 
   terraform-destroy:
