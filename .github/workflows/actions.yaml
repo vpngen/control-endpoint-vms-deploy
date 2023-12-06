@@ -99,8 +99,8 @@ jobs:
     - name: poetry install
       run: poetry install
     - name: Test with pytest
-      run: poetry run pytest test_deploy.py test_brigade.py test_keydesk_api.py
-    - run: poetry run pytest test_connection.py
+      run: sleep 90 && poetry run pytest test/test_deploy.py test/test_brigade.py test/test_keydesk_api.py
+    - run: poetry run pytest test/test_connection.py
 
   client-containers:
     runs-on: self-hosted
