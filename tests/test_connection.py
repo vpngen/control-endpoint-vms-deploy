@@ -3,7 +3,7 @@ import pytest
 import subprocess
 import paramiko
 
-host_ipsec = '172.17.0.5'
+host_ipsec = '172.18.0.20'
 port = 22
 username = 'root'
 private_key_path = '/root/.ssh/id_rsa'
