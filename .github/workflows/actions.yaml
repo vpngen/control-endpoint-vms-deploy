@@ -80,6 +80,17 @@ jobs:
       run: terraform apply -auto-approve -input=false -var-file="terraform.tfvars.default"
 
 
+  client-containers:
+    runs-on: self-hosted
+    environment: test
+    needs: terraform-build
+
+    steps:
+    - name: connecting runner container to client nets
+      run: systemctl start dckr_net_connector.service
+    - name: run ipsec container
+      run: docker  run -d --name=ipsec --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 127.0.0.1:5000/ipsec
+
   tests:
     runs-on: self-hosted
     container:
@@ -102,19 +113,8 @@ jobs:
       run: sleep 90 && poetry run pytest tests/test_deploy.py tests/test_brigade.py tests/test_keydesk_api.py
     - run: poetry run pytest tests/test_connection.py
 
-  client-containers:
-    runs-on: self-hosted
-    environment: test
-    needs: terraform-build
 
-    steps:
-    - name: connecting runner container to client nets
-      run: sleep 10 && DCKRNAME=$(docker ps -a | grep runnerimglatest | awk '{print $1}') && docker network connect test $DCKRNAME
-    - name: run ipsec container
-      run: docker  run -d --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 127.0.0.1:5000/ipsec
-
-
-  destroy:
+  destroy-terraform:
     runs-on: self-hosted
     container: 127.0.0.1:5000/runner-img:latest
     environment: test
@@ -130,3 +130,14 @@ jobs:
     - name: remove ipsec container
       run: docker rm ipsec -f
 
+
+  destroy-containers:
+    runs-on: self-hosted
+    environment: tests
+    needs: terraform-build
+
+    steps:
+    - name: stop connector
+      run: systemctl stop dckr_net_connector.service
+    - name: delete ipsec
+      run: docker rm ipsec -f
