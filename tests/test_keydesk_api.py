@@ -2,6 +2,7 @@ import pytest
 import paramiko
 import subprocess
 import json
+paramiko.common.logging.basicConfig(level=paramiko.common.DEBUG)
 
 # VMs IP addresses and SSH credentials
 vm_ct = '10.255.0.4'
@@ -9,6 +10,7 @@ vm_ep = '10.255.0.5'
 port = 22
 username = 'ubuntu'
 private_key_path = '/root/.ssh/id_rsa'
+key = paramiko.RSAKey(filename=private_key_path)
 
 # List of services to check on CTs
 ct_services = [
@@ -56,7 +58,7 @@ def test_user():
             host,
             port,
             username,
-            private_key_path
+            key
         )
 
         if host == vm_ep:
