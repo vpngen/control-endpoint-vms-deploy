@@ -133,8 +133,8 @@ jobs:
 
   destroy-containers:
     runs-on: self-hosted
-    environment: tests
-    needs: terraform-build
+    environment: test
+    needs: tests
 
     steps:
     - name: stop connector
