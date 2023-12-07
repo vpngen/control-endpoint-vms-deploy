@@ -40,7 +40,7 @@ jobs:
     container:
       image: 127.0.0.1:5000/runner-img:latest
       volumes:
-        - /root/.ssh/:/root/.ssh:ro
+        - /root/.ssh/:/root/.ssh
     environment: test
     if: ${{ always() }}
     needs: docker-build
