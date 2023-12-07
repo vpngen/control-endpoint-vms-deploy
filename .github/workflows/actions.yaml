@@ -37,7 +37,10 @@ jobs:
 
   terraform-build:
     runs-on: self-hosted
-    container: 127.0.0.1:5000/runner-img:latest
+    container:
+      image: 127.0.0.1:5000/runner-img:latest
+      volumes:
+        - /root/.ssh/:/root/.ssh:ro
     environment: test
     if: ${{ always() }}
     needs: docker-build

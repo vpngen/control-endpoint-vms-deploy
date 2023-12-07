@@ -35,7 +35,7 @@ RUN echo "#!/bin/sh" > /entrypoint.sh \
     && echo "    sleep 3600" >> /entrypoint.sh \
     && echo "done" >> /entrypoint.sh
 
-RUN ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
+#RUN ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N "" #test pipeline
 
 RUN chmod +x /entrypoint.sh
 
