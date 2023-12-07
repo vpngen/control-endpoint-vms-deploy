@@ -81,6 +81,8 @@ jobs:
       run: terraform plan -input=false -var-file="terraform.tfvars.default"
     - name: terraform apply
       run: terraform apply -auto-approve -input=false -var-file="terraform.tfvars.default"
+    - name: update known_hosts
+      run: ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.5" && ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.4"
 
 
   client-containers:
@@ -103,7 +105,9 @@ jobs:
         - /root/.ssh/:/root/.ssh
       options:  --privileged
     environment: test
-    needs: terraform-build
+    needs:
+      - terraform-build
+      - client-containers
 
     steps:
     - uses: actions/checkout@v3
