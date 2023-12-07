@@ -19,8 +19,8 @@ ct_services = [
 
 def test_brigade():
     commands = [
-        """ssh -i /root/.ssh/id_rsa_keydesk _serega_@10.255.0.4 destroy -id WNFRWF4E5VELRL7OMFIK4Z3URI""",
-        """ssh -i /root/.ssh/id_rsa_keydesk _serega_@10.255.0.4 create -id WNFRWF4E5VELRL7OMFIK4Z3URI \
+        """ssh  -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa_keydesk _serega_@10.255.0.4 destroy -id WNFRWF4E5VELRL7OMFIK4Z3URI""",
+        """ssh  -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa_keydesk _serega_@10.255.0.4 create -id WNFRWF4E5VELRL7OMFIK4Z3URI \
               -ep4 195.133.0.108 -int4 100.124.76.0/24 -int6 fd18:98bf:67ab:b2aa::/64 -dns4 100.124.76.1 \
               -dns6 fd18:98bf:67ab:b2aa:5917:f76a:c955:18d3 -kd6 fd70:c7ee:e821:af9b:8c89:7cc9:2c5e:bfee \
               -name 0K/RgNC60LDRjyDQndC10LzQtdGC -person 0K3QstC4INCd0LXQvNC10YI= \

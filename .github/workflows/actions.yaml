@@ -113,7 +113,7 @@ jobs:
     - name: poetry install
       run: poetry install
     - name: Test with pytest
-      run: sleep 90 && poetry run pytest tests/test_deploy.py tests/test_brigade.py tests/test_keydesk_api.py
+      run: sleep 120 && poetry run pytest tests/test_deploy.py tests/test_brigade.py tests/test_keydesk_api.py
     - run: poetry run pytest tests/test_connection.py
 
 
