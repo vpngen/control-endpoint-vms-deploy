@@ -27,7 +27,7 @@ jobs:
         run: docker build -f docker/runner-img/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
       - name: Build the ipsec image
         if: steps.changes.outputs.docker == 'true'
-        run: docker build -f docker/ipsec/Dockerfile -t 127.0.0.1:5000/ipsec:latest .
+        run: docker build -f docker/ipsec/Dockerfile -t 127.0.0.1:5000/ipsec-img:latest .
       - name: push the runner image
         if: steps.changes.outputs.docker == 'true'
         run: docker push 127.0.0.1:5000/runner-img:latest
