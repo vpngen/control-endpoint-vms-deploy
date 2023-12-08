@@ -9,8 +9,8 @@ vm_ct = '10.255.0.4'
 vm_ep = '10.255.0.5'
 port = 22
 username = 'ubuntu'
-private_key_path = '/root/.ssh/id_rsa'
-key = paramiko.RSAKey(filename=private_key_path)
+key = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
+
 
 # List of services to check on CTs
 ct_services = [
@@ -58,7 +58,7 @@ def test_user():
             host,
             port,
             username,
-            key
+            pkey=key
         )
 
         if host == vm_ep:
