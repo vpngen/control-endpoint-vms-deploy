@@ -115,6 +115,5 @@ def save_json_to_file(json_data, file_name='/config.json'):
         file.write(json_data)
 
 
-test_brigade()
-test_user()
 parse_config(json_data)
+save_json_to_file(json_data, file_name='/config.json')
