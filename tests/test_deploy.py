@@ -7,7 +7,7 @@ vm_ct = '10.255.0.4'
 vm_ep = '10.255.0.5'
 port = 22
 username = 'ubuntu'
-private_key_path = '/root/.ssh/id_rsa'
+key = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
 
 # List of services to check
 ct_services_to_check = ["socat-apt-proxy", "socat-rsyslog-proxy", "socat-zabbix-proxy"]
@@ -27,7 +27,7 @@ def test_deploy():
                 host,
                 port,
                 username,
-                private_key_path
+                pkey=key
             )
             if host == vm_ct:
                 #Add a wait until the cloud init script is executed

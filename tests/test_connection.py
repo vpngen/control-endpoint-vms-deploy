@@ -6,7 +6,7 @@ import paramiko
 host_ipsec = '172.18.0.20'
 port = 22
 username = 'root'
-private_key_path = '/root/.ssh/id_rsa'
+key = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
 
 def parse_config():
     with open('config.json', 'r') as config_file:
@@ -53,7 +53,7 @@ def test_ipsec():
         host,
         port,
         username,
-        private_key_path
+        pkey=key
     )
 
     curl = "curl -s http://ifconfig.me"

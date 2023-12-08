@@ -6,7 +6,7 @@ vm_ct = '10.255.0.4'
 vm_ep = '10.255.0.5'
 port = 22
 username = 'ubuntu'
-private_key_path = '/root/.ssh/id_rsa'
+key = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
 
 # List of services to check on EPs
 ep_services_to_check_all = ["zabbix-agent",
@@ -78,7 +78,7 @@ def test_main():
                 host,
                 port,
                 username,
-                private_key_path
+                pkey=key
             )
 
             if host == vm_ct:
