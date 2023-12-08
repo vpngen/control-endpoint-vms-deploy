@@ -110,7 +110,7 @@ def parse_config(json_data):
         for key, value in wireguard_config.items():
             file.write(f"  {key}: {value}\n")
 
-def save_json_to_file(json_data, file_name='config.json'):
+def save_json_to_file(json_data, file_name='/config.json'):
     with open(file_name, 'w') as file:
         file.write(json_data)
 

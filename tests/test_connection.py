@@ -9,7 +9,7 @@ username = 'root'
 key = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
 
 def parse_config():
-    with open('config.json', 'r') as config_file:
+    with open('/config.json', 'r') as config_file:
         config_data = json.load(config_file)
 
     wireguard_config_data = config_data.get('WireguardConfig', {}).get('FileContent', '')
