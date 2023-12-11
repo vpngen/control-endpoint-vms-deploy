@@ -97,8 +97,10 @@ def test_main():
                 ep_services = ep_services_to_check[index]
                 for service in ep_services:
                     command = f'systemctl is-active {service}'
+                    print(service)
                     status = execute_remote_command(ssh, command)
                     assert status == 'active'
+
             command_del = """curl -v 'http://[fdcc:c385:6c::3]:8080/?wg_del='`echo In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM= | nacl -b seal /etc/vg-router.json`"""
             response_del = execute_remote_command(ssh, command_del)
             assert response_del == '{"code": "0"}' or response_del == '{"code": "128", "error": "no interface found for supplied private key"}'
