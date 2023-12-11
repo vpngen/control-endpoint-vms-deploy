@@ -148,6 +148,8 @@ jobs:
         echo '["WAN_195.133.0.104_29", "195.133.0.107", 29, "195.133.0.105"],' > ips.txt
         echo '["WAN_195.133.0.104_29", "195.133.0.108", 29, "195.133.0.105"]' >> ips.txt
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
+    - name: terraform init
+      run: terraform init -var-file="terraform.tfvars.default"
     - name: terraform destroy
       run: terraform destroy -auto-approve -input=false -var-file="terraform.tfvars.default"
 
