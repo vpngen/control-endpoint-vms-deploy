@@ -129,11 +129,27 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: set variables
+      run: |
+        sed -i 's/<ORG>/${{ vars.TEST_ORG }}/' terraform.tfvars.default
+        sed -i 's/<VDC>/${{ vars.TEST_VDC }}/' terraform.tfvars.default
+        sed -i 's/<USER>/${{ vars.TEST_USER }}/' terraform.tfvars.default
+        sed -i 's/<PASSWORD>/${{ secrets.TEST_PASSWORD }}/' terraform.tfvars.default
+        sed -i 's/<OS_TEMPLATE_NAME>/${{ vars.TEST_OS_TEMPLATE_NAME }}/' terraform.tfvars.default
+        sed -i 's/<OS_TEMPLATES_CATALOG>/${{ vars.TEST_OS_TEMPLATES_CATALOG }}/' terraform.tfvars.default
+        sed -i 's\<SSH_KEY_FILE>\${{ vars.TEST_SSH_KEY_FILE }}\' terraform.tfvars.default
+        sed -i 's/<LAN_NAME>/${{ vars.TEST_LAN_NAME }}/' terraform.tfvars.default
+        sed -i 's/<LAN_MANAGEMENT_IP>/${{ vars.TEST_LAN_MANAGEMENT_IP }}/' terraform.tfvars.default
+        sed -i 's/<LAN_LOWEST_IP_ADDRESS>/${{ vars.TEST_LAN_LOWEST_IP_ADDRESS }}/' terraform.tfvars.default
+        sed -i 's/<PREFIX>/${{ vars.TEST_PREFIX }}/' terraform.tfvars.default
+        sed -i 's\<URL>\${{ vars.TEST_URL }}\' terraform.tfvars.default
+        sed -i 's/<ZABBIX_SERVER_IP>/${{ vars.TEST_ZABBIX_SERVER_IP }}/' terraform.tfvars.default
+        sed -i 's/<ENDPOINT_LAN_INTERFACES>/${{ vars.TEST_ENDPOINT_LAN_INTERFACES }}/' terraform.tfvars.default
+        echo '["WAN_195.133.0.104_29", "195.133.0.107", 29, "195.133.0.105"],' > ips.txt
+        echo '["WAN_195.133.0.104_29", "195.133.0.108", 29, "195.133.0.105"]' >> ips.txt
+        sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
     - name: terraform destroy
       run: terraform destroy -auto-approve -input=false -var-file="terraform.tfvars.default"
-    - name: remove ipsec container
-      run: docker rm ipsec -f
-
 
   destroy-containers:
     runs-on: self-hosted
