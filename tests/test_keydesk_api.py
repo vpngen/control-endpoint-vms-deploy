@@ -69,6 +69,8 @@ def test_user():
             global json_data
             json_data = response
             assert 'AmnzOvcConfig' or 'IPSecL2TPManualConfig' or 'OutlineConfig' or 'WireguardConfig' in response
+            with open("/config.json", 'w') as file:
+                file.write(json_data)
         else:
             for service in ct_services:
                 command = f'systemctl is-active {service}'
@@ -76,45 +78,3 @@ def test_user():
                 assert status == 'active'
 
         ssh.close()
-
-def parse_config(json_data):
-    subprocess.run(
-        'rm -f config.txt',
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding='utf-8',
-        timeout=60
-    )
-    with open('config.txt', 'w') as file:
-        config_data = json.loads(json_data)
-
-        amnz_ovc_config = config_data.get('AmnzOvcConfig', {})
-        ipsec_l2tp_config = config_data.get('IPSecL2TPManualConfig', {})
-        outline_config = config_data.get('OutlineConfig', {})
-        wireguard_config = config_data.get('WireguardConfig', {})
-
-        file.write("AmnzOvcConfig:\n")
-        for key, value in amnz_ovc_config.items():
-            file.write(f"  {key}: {value}\n")
-
-        file.write("\nIPSecL2TPManualConfig:\n")
-        for key, value in ipsec_l2tp_config.items():
-            file.write(f"  {key}: {value}\n")
-
-        file.write("\nOutlineConfig:\n")
-        for key, value in outline_config.items():
-            file.write(f"  {key}: {value}\n")
-
-        file.write("\nWireguardConfig:\n")
-        for key, value in wireguard_config.items():
-            file.write(f"  {key}: {value}\n")
-
-def save_json_to_file(json_data, file_name='/config.json'):
-    with open(file_name, 'w') as file:
-        file.write(json_data)
-
-test_brigade()
-test_user()
-parse_config(json_data)
-save_json_to_file(json_data, file_name='/config.json')

@@ -65,7 +65,7 @@ def test_ipsec():
                 export VPN_PASSWORD={ipsec_config_data.get("Password", "")} \
                 && sh /startup.sh > /dev/null & sleep 60'''
     execute_remote_command(ssh, startup)
-    route = "ip route add 195.133.0.108 via 172.17.0.1 && ip route del default  && ip route add default via 100.127.0.1 dev ppp0"
+    route = "ip route add 195.133.0.108 via 172.18.0.1 && ip route del default  && ip route add default via 100.127.0.1 dev ppp0"
     execute_remote_command(ssh, route)
     updated_external_ip = execute_remote_command(ssh, curl)
     print(route)

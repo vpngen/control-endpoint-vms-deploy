@@ -94,7 +94,7 @@ jobs:
     - name: connecting runner container to client nets
       run: systemctl start dckr_net_connector.service
     - name: run ipsec container
-      run: docker  run -d --name=ipsec --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 127.0.0.1:5000/ipsec
+      run: docker  run -d --name=ipsec --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 -p 4500:4500 -p 500:500 127.0.0.1:5000/ipsec-img
 
   tests:
     runs-on: self-hosted
