@@ -150,6 +150,8 @@ jobs:
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
     - name: terraform init
       run: terraform init -var-file="terraform.tfvars.default"
+    - name: terraform plan
+      run: terraform plan -input=false -var-file="terraform.tfvars.default"
     - name: terraform destroy
       run: terraform destroy -auto-approve -input=false -var-file="terraform.tfvars.default"
 
