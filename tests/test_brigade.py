@@ -83,7 +83,7 @@ def test_main():
 
             if host == vm_ct:
                 command_add_keys = '''sudo apt install vg-nacl easy-rsa -y && \
-                                    /usr/share/easy-rsa/easyrsa --batch --use-algo=ec --curve=secp521r1 --digest=sha512 /home/ubuntu/init-pki && \
+                                    /usr/share/easy-rsa/easyrsa --batch --use-algo=ec --curve=secp521r1 --digest=sha512 init-pki && \
                                     /usr/share/easy-rsa/easyrsa --batch --use-algo=ec --curve=secp521r1 --digest=sha512 --days=3650 build-ca nopass && \
                                     EASYRSA_REQ_CN=client1 /usr/share/easy-rsa/easyrsa --batch --use-algo=ec --curve=secp521r1 --digest=sha512 gen-req client1 nopass'''
                 execute_remote_command(ssh, command_add_keys)
