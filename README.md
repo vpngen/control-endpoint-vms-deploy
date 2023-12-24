@@ -21,3 +21,41 @@ curl -v 'http://[fdcc:c385:76::3]:8080/?wg_unblock=dUAM1u5nOou3IH6Z07IvjkZU+7zhd
 curl -v 'http://[fdcc:c385:76::3]:8080/?bw_set=In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM=&wg-public-key=dUAM1u5nOou3IH6Z07IvjkZU+7zhddqNFecgiMz3cls=&up-kbit=100&down-kbit=100'
 # Unset user bandwidth limits
 curl -v 'http://[fdcc:c385:76::3]:8080/?bw_unset=In4ningHYWutaNHXfkE79I3BF20oKzoWiizL7l2oOSM=&wg-public-key=dUAM1u5nOou3IH6Z07IvjkZU+7zhddqNFecgiMz3cls='
+
+# Testing
+
+
+## Docker
+
+In docker directory, Dockerfiles are provided for creating images used by the runner. Additionally, a systemd script "dckr_net_connector.service" is included for connecting the runner's container to the network of client VPN containers.
+
+Images are automatically built through the GitHub Actions pipeline and stored in a local registry on testing-management vm.
+
+### Pipeline Structure
+
+1. **docker-build:** Builds images if changes have been made to the Dockerfiles and pushes them to the registry.
+2. **terraform-build:** Deploys a test environment with two nodes (endpoint and control).
+3. **client-containers:** Launches containers for VPN clients.
+4. **tests:** Executes tests.
+5. **destroy-terraform:** Destroys the test environment.
+6. **destroy-containers:** Disconnects the script adding the runner's container to the test network.
+
+### Tests
+
+- **test_brigade.py:** Creates and deletes a brigade via the API endpoint.
+- **test_connection.py:** Tests client connections.
+- **test_deploy.py:** Checks for successful stand creation and installation of all necessary dependencies.
+- **test_keydesk_api.py:** Creates and deletes a brigade via the Keydesk API.
+
+### TODO
+
+- Add negative testing scenarios.
+- Add testing for statistics.
+- Add testing for Amnezia VPN and Outline-SS.
+- Reduce hardcoded values.
+- Use fixtures.
+- Create a script to wait for a successful stand deployment (instead of the current sleep).
+- Add print statements for debugging.
+- Add  several stands and a queue for using the stands
+
+
