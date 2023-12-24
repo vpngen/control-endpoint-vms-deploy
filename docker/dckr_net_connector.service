@@ -1,0 +1,10 @@
+[Unit]
+Description=docker network connector for github runner
+
+[Service]
+ExecStart=/bin/bash -c "DCKRNAME=$(docker ps -a | grep runnerimglatest | awk '{print $1}') && docker network connect test $DCKRNAME"
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
