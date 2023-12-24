@@ -47,6 +47,11 @@ Images are automatically built through the GitHub Actions pipeline and stored in
 - **test_deploy.py:** Checks for successful stand creation and installation of all necessary dependencies.
 - **test_keydesk_api.py:** Creates and deletes a brigade via the Keydesk API.
 
+### Debugging Instructions
+
+- If tests fail, the stand persists. Debug the error on the stand and rerun the tests.
+- If Terraform fails to create the stand, try clearing the directory /opt/runner-custom/terraform/ on the testing-management VM before rerunning the pipeline.
+
 ### TODO
 
 - Add negative testing scenarios.
