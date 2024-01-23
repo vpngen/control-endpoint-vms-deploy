@@ -3,54 +3,50 @@ name: 'control-endpoint-vms-test'
 on:
   push:
     branches:
-      - 'main'
-      - 'hotfix-*'
+    - main
+    - hotfix-*
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   docker-build:
     runs-on: self-hosted
-    environment: test
-    permissions: write-all
-
     steps:
-      - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-            filters: |
-              docker:
-                - 'docker/**'
-      - name: Build the runner image
-        if: steps.changes.outputs.docker == 'true'
-        run: docker build -f docker/runner-img/Dockerfile -t 127.0.0.1:5000/runner-img:latest .
-      - name: Build the ipsec image
-        if: steps.changes.outputs.docker == 'true'
-        run: docker build -f docker/ipsec/Dockerfile -t 127.0.0.1:5000/ipsec-img:latest .
-      - name: push the runner image
-        if: steps.changes.outputs.docker == 'true'
-        run: docker push 127.0.0.1:5000/runner-img:latest
-      - name: push the ipsec image
-        if: steps.changes.outputs.docker == 'true'
-        run: docker push 127.0.0.1:5000/ipsec-img:latest
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        driver-opts: network=host
+    - name: Build and push vpn-test to local registry
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: docker/Dockerfile
+        push: true
+        tags: localhost:5000/vpn-test:latest
+        cache-from: type=registry,ref=localhost:5000/vpn-test:latest
+        cache-to: type=inline
+    - name: Build and push runner-img to local registry
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: docker/runner-img/Dockerfile
+        push: true
+        tags: localhost:5000/runner-img:latest
+        cache-from: type=registry,ref=localhost:5000/runner-img:latest
+        cache-to: type=inline
 
   terraform-build:
     runs-on: self-hosted
-    container:
-      image: 127.0.0.1:5000/runner-img:latest
-      volumes:
-        - /root/.ssh/:/root/.ssh
-        - /opt/runner-custom/terraform/:/terraform
     environment: test
-    if: ${{ always() }}
-    needs: docker-build
     defaults:
       run:
         shell: bash
-
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.TEST_PAT }}
@@ -73,83 +69,110 @@ jobs:
         echo '["WAN_195.133.0.104_29", "195.133.0.107", 29, "195.133.0.105"],' > ips.txt
         echo '["WAN_195.133.0.104_29", "195.133.0.108", 29, "195.133.0.105"]' >> ips.txt
         sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
-        cp terraform.tfvars.default /terraform
-    - name: symlink to .vm-nacl-keys
-      run: ln -s /root/.vm-nacl-keys /__w/control-endpoint-vms-deploy/control-endpoint-vms-deploy/.vm-nacl-keys
-    - name: terraform init 
-      run: terraform init -var-file="/terraform/terraform.tfvars.default"
+        cp terraform.tfvars.default /opt/runner-custom/terraform
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+    - name: terraform init
+      run: terraform init -var-file="/opt/runner-custom/terraform/terraform.tfvars.default"
     - name: terraform plan
-      run: terraform plan -input=false -var-file="/terraform/terraform.tfvars.default" -state="/terraform/terraform.tfstate"
+      run: |
+        terraform plan \
+          -input=false \
+          -var-file="/opt/runner-custom/terraform/terraform.tfvars.default" \
+          -state="/opt/runner-custom/terraform/terraform.tfstate"
     - name: terraform apply
-      run: terraform apply -auto-approve -input=false -var-file="/terraform/terraform.tfvars.default" -state="/terraform/terraform.tfstate"
+      run: |
+        terraform apply \
+          -auto-approve \
+          -input=false \
+          -var-file="/opt/runner-custom/terraform/terraform.tfvars.default" \
+          -state="/opt/runner-custom/terraform/terraform.tfstate"
     - name: update known_hosts
-      run: ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.5" && ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.4"
-
-
-  client-containers:
-    runs-on: self-hosted
-    environment: test
-    needs: terraform-build
-
-    steps:
-    - name: connecting runner container to client nets
-      run: systemctl start dckr_net_connector.service
-    - name: run ipsec container
-      run: docker  run -d --name=ipsec --privileged --net test --ip 172.18.0.20 -v /lib/modules:/lib/modules:ro -v /root/.ssh/:/root/.ssh:ro -p 1701:1701 -p 4500:4500 -p 500:500 127.0.0.1:5000/ipsec-img
+      run: |
+        ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.5" && \
+        ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.4"
 
   tests:
     runs-on: self-hosted
     container:
       image: 127.0.0.1:5000/runner-img:latest
       volumes:
-        - /lib/modules:/lib/modules
-        - /root/.ssh/:/root/.ssh
-      options:  --privileged
+      - /lib/modules:/lib/modules
+      - /root/.ssh/:/root/.ssh
+      options: --privileged
     environment: test
     needs:
-      - terraform-build
-      - client-containers
-
+    - terraform-build
+    - docker-build
+    env:
+      TEST_SSH_KEY_FILE: ${{ vars.TEST_SSH_KEY_FILE }}
     steps:
     - uses: actions/checkout@v3
-    - name: poetry install
-      run: poetry install
-    - name: Test with pytest
-      run: sleep 180 && modprobe wireguard && sysctl net.ipv6.conf.all.disable_ipv6=0 && sysctl net.ipv6.conf.default.disable_ipv6=0 && sysctl net.ipv6.conf.lo.disable_ipv6=0 && poetry run pytest tests/test_deploy.py tests/test_brigade.py && poetry run pytest tests/test_keydesk_api.py
-    - run: poetry run pytest tests/test_connection.py
+    - run: poetry install
+    - run: modprobe wireguard
+    - run: sysctl net.ipv6.conf.all.disable_ipv6=0
+    - run: sysctl net.ipv6.conf.default.disable_ipv6=0
+    - run: sysctl net.ipv6.conf.lo.disable_ipv6=0
+    - run: poetry run pytest tests/test_deploy.py
+    - run: poetry run pytest tests/test_brigade.py
+    - run: poetry run pytest tests/test_keydesk_api.py
+#    - run: poetry run pytest tests/test_connection.py
 
-
-  destroy-terraform:
+  vpn-tests:
     runs-on: self-hosted
     container:
-      image: 127.0.0.1:5000/runner-img:latest
+      image: localhost:5000/vpn-test:latest
       volumes:
-        - /root/.ssh/:/root/.ssh
-        - /opt/runner-custom/terraform/:/terraform
+      - /lib/modules:/lib/modules
+      - /root/.ssh/:/root/.ssh
+      options: --privileged
     environment: test
-    needs: tests
-    defaults:
-      run:
-        shell: bash
-
+    needs:
+    - terraform-build
+    - docker-build
+    - tests
+    env:
+      TEST_SSH_KEY_FILE: ${{ vars.TEST_SSH_KEY_FILE }}
     steps:
-    - uses: actions/checkout@v3
+    - name: Test get VPN config
+      run: poetry run pytest --tb=short tests/test_config.py
+      working-directory: /home/app
+    - name: Test WireGuard connection
+      run: poetry run pytest --tb=short tests/test_wg.py
+      working-directory: /home/app
+    - name: Test Outline connection
+      run: poetry run pytest --tb=short tests/test_outline.py
+      working-directory: /home/app
+    - name: Test OpenVPN over Cloak connection
+      run: poetry run pytest --tb=short tests/test_cloak_openvpn.py
+      working-directory: /home/app
+
+  terraform-destroy:
+    if: always()
+    needs:
+    - terraform-build
+    - tests
+    - vpn-tests
+    runs-on: self-hosted
+    steps:
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+        token: ${{ secrets.TEST_PAT }}
     - name: workaround empty scripts
       run: mkdir .script-files && touch .script-files/script-ep.sh.0 && touch .script-files/script-ct.sh.0
-    - name: terraform init
-      run: terraform init -var-file="/terraform/terraform.tfvars.default"
-    - name: terraform plan
-      run: terraform plan -input=false -var-file="/terraform/terraform.tfvars.default"
-    - name: terraform destroy
-      run: terraform destroy -auto-approve -input=false -var-file="/terraform/terraform.tfvars.default" -state="/terraform/terraform.tfstate"
-
-  destroy-containers:
-    runs-on: self-hosted
-    environment: test
-    needs: tests
-
-    steps:
-    - name: stop connector
-      run: systemctl stop dckr_net_connector.service
-    - name: delete ipsec
-      run: docker rm ipsec -f
+    - name: Terraform Init
+      id: init
+      run: terraform init
+    - name: Terraform destroy
+      id: destroy
+      run: |
+        terraform destroy \
+          -var-file=/opt/runner-custom/terraform/terraform.tfvars.default \
+          -state=/opt/runner-custom/terraform/terraform.tfstate \
+          -input=false \
+          -auto-approve
