@@ -52,24 +52,24 @@ jobs:
         token: ${{ secrets.TEST_PAT }}
     - name: set variables
       run: |
-        sed -i 's/<ORG>/${{ vars.TEST_ORG }}/' terraform.tfvars.default
-        sed -i 's/<VDC>/${{ vars.TEST_VDC }}/' terraform.tfvars.default
-        sed -i 's/<USER>/${{ vars.TEST_USER }}/' terraform.tfvars.default
-        sed -i 's/<PASSWORD>/${{ secrets.TEST_PASSWORD }}/' terraform.tfvars.default
-        sed -i 's/<OS_TEMPLATE_NAME>/${{ vars.TEST_OS_TEMPLATE_NAME }}/' terraform.tfvars.default
-        sed -i 's/<OS_TEMPLATES_CATALOG>/${{ vars.TEST_OS_TEMPLATES_CATALOG }}/' terraform.tfvars.default
-        sed -i 's\<SSH_KEY_FILE>\${{ vars.TEST_SSH_KEY_FILE }}\' terraform.tfvars.default
-        sed -i 's/<LAN_NAME>/${{ vars.TEST_LAN_NAME }}/' terraform.tfvars.default
-        sed -i 's/<LAN_MANAGEMENT_IP>/${{ vars.TEST_LAN_MANAGEMENT_IP }}/' terraform.tfvars.default
-        sed -i 's/<LAN_LOWEST_IP_ADDRESS>/${{ vars.TEST_LAN_LOWEST_IP_ADDRESS }}/' terraform.tfvars.default
-        sed -i 's/<PREFIX>/${{ vars.TEST_PREFIX }}/' terraform.tfvars.default
-        sed -i 's\<URL>\${{ vars.TEST_URL }}\' terraform.tfvars.default
-        sed -i 's/<ZABBIX_SERVER_IP>/${{ vars.TEST_ZABBIX_SERVER_IP }}/' terraform.tfvars.default
-        sed -i 's/<ENDPOINT_LAN_INTERFACES>/${{ vars.TEST_ENDPOINT_LAN_INTERFACES }}/' terraform.tfvars.default
         echo '["WAN_195.133.0.104_29", "195.133.0.107", 29, "195.133.0.105"],' > ips.txt
         echo '["WAN_195.133.0.104_29", "195.133.0.108", 29, "195.133.0.105"]' >> ips.txt
-        sed -i "s/<WAN_NAME_IP_NET_GW>/cat ips.txt/e" terraform.tfvars.default
-        cp terraform.tfvars.default /opt/runner-custom/terraform
+        sed \
+          -e 's/<ORG>/${{ vars.TEST_ORG }}/' \
+          -e 's/<VDC>/${{ vars.TEST_VDC }}/' \
+          -e 's/<USER>/${{ vars.TEST_USER }}/' \
+          -e 's/<PASSWORD>/${{ secrets.TEST_PASSWORD }}/' \
+          -e 's/<OS_TEMPLATE_NAME>/${{ vars.TEST_OS_TEMPLATE_NAME }}/' \
+          -e 's/<OS_TEMPLATES_CATALOG>/${{ vars.TEST_OS_TEMPLATES_CATALOG }}/' \
+          -e 's\<SSH_KEY_FILE>\${{ vars.TEST_SSH_KEY_FILE }}\' \
+          -e 's/<LAN_NAME>/${{ vars.TEST_LAN_NAME }}/' \
+          -e 's/<LAN_MANAGEMENT_IP>/${{ vars.TEST_LAN_MANAGEMENT_IP }}/' \
+          -e 's/<LAN_LOWEST_IP_ADDRESS>/${{ vars.TEST_LAN_LOWEST_IP_ADDRESS }}/' \
+          -e 's/<PREFIX>/${{ vars.TEST_PREFIX }}/' \
+          -e 's\<URL>\${{ vars.TEST_URL }}\' \
+          -e 's/<ZABBIX_SERVER_IP>/${{ vars.TEST_ZABBIX_SERVER_IP }}/' \
+          -e 's/<ENDPOINT_LAN_INTERFACES>/${{ vars.TEST_ENDPOINT_LAN_INTERFACES }}/' \
+          -e 's/<WAN_NAME_IP_NET_GW>/cat ips.txt/e' terraform.tfvars.default > /opt/runner-custom/terraform/terraform.tfvars.default
     - uses: hashicorp/setup-terraform@v3
       with:
         terraform_wrapper: false
