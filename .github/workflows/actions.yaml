@@ -111,7 +111,10 @@ jobs:
           -state="/opt/runner-custom/terraform/terraform.tfstate" \
           -json ct-networks >> $GITHUB_OUTPUT
     - run: echo $GITHUB_OUTPUT
-
+    outputs:
+      calc-networks: ${{ steps.calc-networks.outputs.value }}
+      ep-networks: ${{ steps.ep-networks.outputs.value }}
+      ct-networks: ${{ steps.ct-networks.outputs.value }}
   tests:
     runs-on: self-hosted
     container:
