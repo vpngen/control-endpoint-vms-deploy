@@ -3,12 +3,15 @@ import os
 import shlex
 from subprocess import run
 
-import paramiko
 import pytest
 import requests
 from paramiko import SSHClient, RSAKey
 
-calc_network_v6_template = '[fdcc:c385:6c::%s]'
+calc_networks = json.loads(os.environ.get('CALC_NETWORKS'))
+ep_networks = json.loads(os.environ.get('EP_NETWORKS'))
+ct_networks = json.loads(os.environ.get('CT_NETWORKS'))
+
+calc_network_v6_template = f'[{calc_networks[1]}%s]'
 ep_address = calc_network_v6_template % '3'
 ct_address = calc_network_v6_template % '2'
 ep_url = f'http://{ep_address}:8080'
@@ -18,14 +21,14 @@ nacl_seal_cmd = 'nacl -b seal /etc/vg-router.json'
 curl = 'curl -v'
 internal_net_v4 = '172.16.0.1/16'
 internal_net_v6 = 'fd0d:86fa:c3bc::1/64'
-external_ip = '195.133.0.108'
+external_ip = ep_networks[0][-1]['ip']
 wgport = 40000
 outline_ss_port = 9944
 ip_url = 'http://ifconfig.me'
 
 # VMs IP addresses and SSH credentials
-vm_ct_ip = '10.255.0.4'
-vm_ep_ip = '10.255.0.5'
+vm_ct_ip = ct_networks[0][0]['ip']
+vm_ep_ip = ep_networks[0][0]['ip']
 ssh_port = 22
 username = 'ubuntu'
 key = RSAKey.from_private_key_file(

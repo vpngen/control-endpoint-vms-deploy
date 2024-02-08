@@ -92,6 +92,25 @@ jobs:
       run: |
         ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.5" && \
         ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.4"
+    - name: Output calc networks
+      id: calc-networks
+      run: |
+        terraform output \
+          -state="/opt/runner-custom/terraform/terraform.tfstate" \
+          -json calc-networks >> $GITHUB_OUTPUT
+    - name: Output endpoint networks
+      id: ep-networks
+      run: |
+        terraform output \
+          -state="/opt/runner-custom/terraform/terraform.tfstate" \
+          -json ep-networks >> $GITHUB_OUTPUT
+    - name: Output control networks
+      id: ct-networks
+      run: |
+        terraform output \
+          -state="/opt/runner-custom/terraform/terraform.tfstate" \
+          -json ct-networks >> $GITHUB_OUTPUT
+    - run: echo $GITHUB_OUTPUT
 
   tests:
     runs-on: self-hosted
@@ -107,6 +126,9 @@ jobs:
     - docker-build
     env:
       TEST_SSH_KEY_FILE: ${{ vars.TEST_SSH_KEY_FILE }}
+      CALC_NETWORKS: ${{ needs.terraform-build.outputs.calc-networks }}
+      EP_NETWORKS: ${{ needs.terraform-build.outputs.ep-networks }}
+      CT_NETWORKS: ${{ needs.terraform-build.outputs.ct-networks }}
     steps:
     - uses: actions/checkout@v3
     - run: poetry install
@@ -134,6 +156,9 @@ jobs:
     - tests
     env:
       TEST_SSH_KEY_FILE: ${{ vars.TEST_SSH_KEY_FILE }}
+      CALC_NETWORKS: ${{ needs.terraform-build.outputs.calc-networks }}
+      EP_NETWORKS: ${{ needs.terraform-build.outputs.ep-networks }}
+      CT_NETWORKS: ${{ needs.terraform-build.outputs.ct-networks }}
     steps:
     - name: Test get VPN config
       run: poetry run pytest --tb=short tests/test_config.py
