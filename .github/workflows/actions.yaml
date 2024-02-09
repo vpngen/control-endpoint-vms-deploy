@@ -97,19 +97,19 @@ jobs:
       run: |
         terraform output \
           -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json calc-networks >> $GITHUB_OUTPUT
+          -json calc-networks >> "$GITHUB_OUTPUT"
     - name: Output endpoint networks
       id: ep-networks
       run: |
         terraform output \
           -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json ep-networks >> $GITHUB_OUTPUT
+          -json ep-networks >> "$GITHUB_OUTPUT"
     - name: Output control networks
       id: ct-networks
       run: |
         terraform output \
           -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json ct-networks >> $GITHUB_OUTPUT
+          -json ct-networks >> "$GITHUB_OUTPUT"
     - run: echo $GITHUB_OUTPUT
     outputs:
       calc-networks: ${{ steps.calc-networks.outputs.value }}
