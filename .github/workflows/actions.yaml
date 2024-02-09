@@ -92,40 +92,37 @@ jobs:
       run: |
         ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.5" && \
         ssh-keygen -f "/root/.ssh/known_hosts" -R "10.255.0.4"
-    - run: echo $GITHUB_OUTPUT
-    - name: Output calc networks
-      run: |
-        terraform output \
-          -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json calc-networks
-    - name: Output endpoint networks
-      run: |
-        terraform output \
-          -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json ep-networks
-    - name: Output control networks
-      run: |
-        terraform output \
-          -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json ct-networks
     - name: Output calc networks
       id: calc-networks
       run: |
-        terraform output \
-          -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json calc-networks >> $GITHUB_OUTPUT
+        {
+          calc-networks<<EOF
+          terraform output \
+            -state="/opt/runner-custom/terraform/terraform.tfstate" \
+            -json calc-networks
+          echo EOF
+        } >> $GITHUB_OUTPUT
     - name: Output endpoint networks
       id: ep-networks
       run: |
-        terraform output \
-          -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json ep-networks >> $GITHUB_OUTPUT
+        {
+          calc-networks<<EOF
+          terraform output \
+            -state="/opt/runner-custom/terraform/terraform.tfstate" \
+            -json ep-networks
+          echo EOF
+        } >> $GITHUB_OUTPUT
     - name: Output control networks
       id: ct-networks
       run: |
-        terraform output \
-          -state="/opt/runner-custom/terraform/terraform.tfstate" \
-          -json ct-networks >> $GITHUB_OUTPUT
+        {
+          calc-networks<<EOF
+          terraform output \
+            -state="/opt/runner-custom/terraform/terraform.tfstate" \
+            -json ct-networks
+          echo EOF
+        } >> $GITHUB_OUTPUT
+    - run: echo $GITHUB_OUTPUT
     outputs:
       calc-networks: ${{ steps.calc-networks.outputs.value }}
       ep-networks: ${{ steps.ep-networks.outputs.value }}
