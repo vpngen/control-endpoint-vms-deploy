@@ -96,7 +96,7 @@ jobs:
       id: calc-networks
       run: |
         {
-          echo 'calc-networks<<EOF'
+          echo 'value<<EOF'
           terraform output \
             -state="/opt/runner-custom/terraform/terraform.tfstate" \
             -json calc-networks
@@ -106,7 +106,7 @@ jobs:
       id: ep-networks
       run: |
         {
-          echo 'ep-networks<<EOF'
+          echo 'value<<EOF'
           terraform output \
             -state="/opt/runner-custom/terraform/terraform.tfstate" \
             -json ep-networks
@@ -116,7 +116,7 @@ jobs:
       id: ct-networks
       run: |
         {
-          echo 'ct-networks<<EOF'
+          echo 'value<<EOF'
           terraform output \
             -state="/opt/runner-custom/terraform/terraform.tfstate" \
             -json ct-networks
