@@ -7,6 +7,10 @@ import pytest
 import requests
 from paramiko import SSHClient, RSAKey
 
+print(f"{os.environ.get('CALC_NETWORKS') = }")
+print(f"{os.environ.get('EP_NETWORKS') = }")
+print(f"{os.environ.get('CT_NETWORKS') = }")
+
 calc_networks = json.loads(os.environ.get('CALC_NETWORKS'))
 ep_networks = json.loads(os.environ.get('EP_NETWORKS'))
 ct_networks = json.loads(os.environ.get('CT_NETWORKS'))
