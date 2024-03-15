@@ -18,20 +18,20 @@ def test_deploy_ct():
     with SSHClient() as ssh:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(vm_ct_ip, ssh_port, username, pkey=key)
-        # # Add a wait until the cloud init script is executed
-        # max_attempts = 10
-        # current_attempt = 0
-        # while current_attempt < max_attempts:
-        #     result = execute_remote_command(
-        #         ssh,
-        #         f'sleep 60 && '
-        #         f'pgrep -c -f "/var/lib/cloud/instance/scripts/part-001"'
-        #     )
-        #     print(result)
-        #     if int(result) == 0 or current_attempt == max_attempts:
-        #         break
-        #     else:
-        #         current_attempt += 1
+        # Add a wait until the cloud init script is executed
+        max_attempts = 10
+        current_attempt = 0
+        while current_attempt < max_attempts:
+            result = execute_remote_command(
+                ssh,
+                f'sleep 60 && '
+                f'pgrep -c -f "/var/lib/cloud/instance/scripts/part-001"'
+            )
+            print(result)
+            if int(result) == 0 or current_attempt == max_attempts:
+                break
+            else:
+                current_attempt += 1
 
         # Checking the installation of packages
         command = "dpkg -s vgkeydesk-all cert-vpn-works > /dev/null; echo $?"
@@ -49,20 +49,20 @@ def test_deploy_ep():
     with SSHClient() as ssh:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(vm_ep_ip, ssh_port, username, pkey=key)
-        # # Add a wait until the cloud init script is executed
-        # max_attempts = 10
-        # current_attempt = 0
-        # while current_attempt < max_attempts:
-        #     result = execute_remote_command(
-        #         ssh,
-        #         f'sleep 60 && '
-        #         f'pgrep -c -f "/var/lib/cloud/instance/scripts/part-001"'
-        #     )
-        #     print(result)
-        #     if int(result) == 0 or current_attempt == max_attempts:
-        #         break
-        #     else:
-        #         current_attempt += 1
+        # Add a wait until the cloud init script is executed
+        max_attempts = 10
+        current_attempt = 0
+        while current_attempt < max_attempts:
+            result = execute_remote_command(
+                ssh,
+                f'sleep 60 && '
+                f'pgrep -c -f "/var/lib/cloud/instance/scripts/part-001"'
+            )
+            print(result)
+            if int(result) == 0 or current_attempt == max_attempts:
+                break
+            else:
+                current_attempt += 1
 
         # Checking the installation of packages
         command = "sudo iptables -m ipp2p --help 2>/dev/null | fgrep -c BitTorrent"

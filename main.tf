@@ -128,16 +128,6 @@ resource "vcd_vm" "control" {
     ip                 = format("%s2", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])
     is_primary         = false
   }
-
-  connection {
-    host        = self.network[0].ip
-    user        = "ubuntu"
-    private_key = file(replace(var.ssh_key_file, ".pub", ""))
-  }
-
-  provisioner "remote-exec" {
-    script = "scripts/wait-cloud-init.sh"
-  }
 }
 
 resource "null_resource" "script-ep" {
@@ -266,16 +256,5 @@ resource "vcd_vm" "endpoint" {
       ip                 = network.value[1]
       is_primary         = false
     }
-  }
-
-
-  connection {
-    host        = self.network[0].ip
-    user        = "ubuntu"
-    private_key = file(replace(var.ssh_key_file, ".pub", ""))
-  }
-
-  provisioner "remote-exec" {
-    script = "scripts/wait-cloud-init.sh"
   }
 }
