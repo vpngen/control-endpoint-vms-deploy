@@ -1,16 +1,18 @@
-import pytest
-import paramiko
 import subprocess
-import json
+
+import paramiko
+
+from tests.common import (
+    vm_ct_ip,
+    vm_ep_ip,
+    ssh_port,
+    username,
+    key,
+    keydesk_url,
+    execute_remote_command,
+)
+
 paramiko.common.logging.basicConfig(level=paramiko.common.DEBUG)
-
-# VMs IP addresses and SSH credentials
-vm_ct = '10.255.0.4'
-vm_ep = '10.255.0.5'
-port = 22
-username = 'ubuntu'
-key = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
-
 
 # List of services to check on CTs
 ct_services = [
@@ -23,12 +25,22 @@ def test_brigade():
     commands = [
         """ssh  -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa_keydesk _serega_@10.255.0.4 destroy -id WNFRWF4E5VELRL7OMFIK4Z3URI""",
         """ssh  -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa_keydesk _serega_@10.255.0.4 create -id WNFRWF4E5VELRL7OMFIK4Z3URI \
-              -ep4 195.133.0.108 -int4 100.124.76.0/24 -int6 fd18:98bf:67ab:b2aa::/64 -dns4 100.124.76.1 \
-              -dns6 fd18:98bf:67ab:b2aa:5917:f76a:c955:18d3 -kd6 fd70:c7ee:e821:af9b:8c89:7cc9:2c5e:bfee \
-              -name 0K/RgNC60LDRjyDQndC10LzQtdGC -person 0K3QstC4INCd0LXQvNC10YI= \
-              -desc 0JDQvNC10YDQuNC60LDQvdGB0LrQuNC5INC40L3QttC10L3QtdGALCDQv9C40YHQsNGC0LXQu9GMINC4INC/0YDQtdC/0L7QtNCw0LLQsNGC0LXQu9GMLCDQuNC30LLQtdGB0YLQvdCwINGB0LLQvtC40LzQuCDRjdC60YHQv9C10YDRgtC90YvQvNC4INC/0L7Qt9C90LDQvdC40Y/QvNC4INCyINGB0LjRgdGC0LXQvNC90L7QvCDQsNC00LzQuNC90LjRgdGC0YDQuNGA0L7QstCw0L3QuNC4INC4INGB0LXRgtC10LLRi9GFINGC0LXRhdC90L7Qu9C+0LPQuNGP0YUu \
-              -url aHR0cHM6Ly9ydS53aWtpcGVkaWEub3JnL3dpa2kvJUQwJTlEJUQwJUI1JUQwJUJDJUQwJUI1JUQxJTgyLF8lRDAlQUQlRDAlQjIlRDAlQjg= \
-              -j -wg native -ipsec text -ovc amnezia -outline access_key -ch -p 54321"""
+-ep4 195.133.0.108 -int4 100.124.76.0/24 \
+-int6 fd18:98bf:67ab:b2aa::/64 \
+-dns4 100.124.76.1 \
+-dns6 fd18:98bf:67ab:b2aa:5917:f76a:c955:18d3 \
+-kd6 fd70:c7ee:e821:af9b:8c89:7cc9:2c5e:bfee \
+-name 0K/RgNC60LDRjyDQndC10LzQtdGC \
+-person 0K3QstC4INCd0LXQvNC10YI= \
+-desc 0JDQvNC10YDQuNC60LDQvdGB0LrQuNC5INC40L3QttC10L3QtdGALCDQv9C40YHQsNGC0LXQu9GMINC4INC/0YDQtdC/0L7QtNCw0LLQsNGC0LXQu9GMLCDQuNC30LLQtdGB0YLQvdCwINGB0LLQvtC40LzQuCDRjdC60YHQv9C10YDRgtC90YvQvNC4INC/0L7Qt9C90LDQvdC40Y/QvNC4INCyINGB0LjRgdGC0LXQvNC90L7QvCDQsNC00LzQuNC90LjRgdGC0YDQuNGA0L7QstCw0L3QuNC4INC4INGB0LXRgtC10LLRi9GFINGC0LXRhdC90L7Qu9C+0LPQuNGP0YUu \
+-url aHR0cHM6Ly9ydS53aWtpcGVkaWEub3JnL3dpa2kvJUQwJTlEJUQwJUI1JUQwJUJDJUQwJUI1JUQxJTgyLF8lRDAlQUQlRDAlQjIlRDAlQjg= \
+-j \
+-wg native \
+-ipsec text \
+-ovc amnezia \
+-outline access_key \
+-ch \
+-p 54321"""
     ]
     count = 0
     for command in commands:
@@ -42,29 +54,28 @@ def test_brigade():
         )
         if count == 0:
             assert result.returncode == 0 or 1
-            count +=1
+            count += 1
         else:
             assert result.returncode == 0
 
-def execute_remote_command(ssh, command):
-    stdin, stdout, stderr = ssh.exec_command(command)
-    return stdout.read().decode('utf-8').strip()
 
 def test_user():
-    for host in [vm_ep, vm_ct]:
+    json_header = "-H 'accept: application/json'"
+    curl = 'curl -s -X POST'
+    for host in [vm_ep_ip, vm_ct_ip]:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(
             host,
-            port,
+            ssh_port,
             username,
             pkey=key
         )
 
-        if host == vm_ep:
-            command_token = """curl -s -X 'POST' "http://[fdcc:c385:6c::2]:80/token" -H 'accept: application/json' -d '' | jq -r '.Token' | tr -d ''"""
+        if host == vm_ep_ip:
+            command_token = f"""{curl} "{keydesk_url}/token" {json_header} -d '' | jq -r '.Token' | tr -d ''"""
             token = execute_remote_command(ssh, command_token)
-            command_add = f"""curl -s -X 'POST' "http://[fdcc:c385:6c::2]:80/user" -H 'accept: application/json' -H "Authorization: Bearer {token}" -d ''"""
+            command_add = f"""{curl} "{keydesk_url}/user" {json_header} -H "Authorization: Bearer {token}" -d ''"""
             response = execute_remote_command(ssh, command_add)
             global json_data
             json_data = response

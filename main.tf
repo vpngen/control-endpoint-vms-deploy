@@ -1,115 +1,15 @@
-terraform {
-  required_providers {
-    vcd = {
-      source = "vmware/vcd"
-      version = "3.7"
-    }
-  }
-}
-
-variable "vcd_org" {
-  type = string
-}
-
-variable "vcd_vdc" {
-  type = string
-}
-
-variable "vcd_user" {
-  type = string
-}
-
-variable "vcd_pass" {
-  type = string
-  sensitive = true
-}
-
-variable "vcd_template" {
-  type = string
-}
-
-variable "vcd_templates_catalog" {
-  type = string
-}
-variable "vm_name_prefix" {
-  type = string
-  sensitive = true
-}
-
-variable "ssh_key_file" {
-  type = string
-  sensitive = true
-}
-
-variable "ctrl_name_prefix" {
-  type = string
-  sensitive = true
-}
-
-variable "ctrl_ipv6_high_hex" {
-  type = string
-}
-
-variable "wan_ips_per_vm" {
-  type = number
-}
-
-variable "wan_name_ip_net_gw" {
-  type = list
-}
-
-variable "lan_name" {
-  type = string
-  sensitive = true
-}
-
-variable "lan_mgmt_ip" {
-  type = string
-}
-
-variable "lan_start_ip" {
-  type = string
-}
-
-variable "endpoint_lan_interfaces" {
-  type = list
-}
-
-variable "keydesk_deb_repo_string" {
-  type = string
-  sensitive = true
-}
-
-variable "zabbix_server" {
-  type = string
-  sensitive = true
-}
-
-variable "endpoint_cpu_cores" {
-  type = number
-}
-
-variable "endpoint_ram_size" {
-  type = number
-}
-
-# Configure the VMware Cloud Director Provider
-provider "vcd" {
-  user                 = var.vcd_user
-  password             = var.vcd_pass
-  auth_type            = "integrated"
-  org                  = var.vcd_org
-  vdc                  = var.vcd_vdc
-  url                  = "https://my.wolkee.cloud/api"
-#  max_retry_timeout    = var.vcd_max_retry_timeout
-  allow_unverified_ssl = true
-}
-
 locals {
-  ctrl_ipv6_ips = [for ipv6 in var.wan_name_ip_net_gw : format("%s:%x:%x:0:0:0:0:",
-    var.ctrl_ipv6_high_hex, split(".", ipv6[1])[0] * 256 + split(".", ipv6[1])[1],
-      split(".", ipv6[1])[2] * 256 + split(".", ipv6[1])[3])]
+  ctrl_ipv6_ips = [
+    for ipv6 in var.wan_name_ip_net_gw : format(
+      "%s:%x:%x:0:0:0:0:",
+      var.ctrl_ipv6_high_hex,
+      split(".", ipv6[1])[0] * 256 + split(".", ipv6[1])[1],
+      split(".", ipv6[1])[2] * 256 + split(".", ipv6[1])[3]
+    )
+  ]
+
   vm_pairs = ceil(length(var.wan_name_ip_net_gw) / var.wan_ips_per_vm)
+
   lan_start_ip_int = split(".", var.lan_start_ip)[0] * 16777216 + split(".", var.lan_start_ip)[1] * 65536 + split(".", var.lan_start_ip)[2] * 256 + split(".", var.lan_start_ip)[3]
 }
 
@@ -121,7 +21,11 @@ resource "vcd_network_isolated_v2" "control_net" {
   prefix_length = 16
 
   dynamic "static_ip_pool" {
-    for_each = slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips)))
+    for_each = slice(
+      local.ctrl_ipv6_ips,
+      each.value * var.wan_ips_per_vm,
+      min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))
+    )
     content {
       start_address = format("%s2", static_ip_pool.value)
       end_address   = format("%s3", static_ip_pool.value)
@@ -154,7 +58,7 @@ EOT
   }
 
   provisioner "local-exec" {
-    when = destroy
+    when    = destroy
     command = <<EOT
 rm -f ${self.triggers.dest_file}
 EOT
@@ -166,7 +70,6 @@ data "local_file" "script-ct_file" {
 
   filename = null_resource.script-ct[each.value].triggers.dest_file
 }
-
 
 resource "vcd_vm" "control" {
   for_each      = toset([for vm_num in range(0, local.vm_pairs) : tostring(vm_num)])
@@ -249,7 +152,7 @@ EOT
   }
 
   provisioner "local-exec" {
-    when = destroy
+    when    = destroy
     command = <<EOT
 rm -f ${self.triggers.dest_file}
 EOT
@@ -340,7 +243,12 @@ resource "vcd_vm" "endpoint" {
   }
 
   dynamic "network" {
-    for_each = slice(var.wan_name_ip_net_gw, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_name_ip_net_gw)))
+    for_each = slice(
+      var.wan_name_ip_net_gw,
+      each.value * var.wan_ips_per_vm,
+      min((each.value + 1) * var.wan_ips_per_vm, length(var.wan_name_ip_net_gw))
+    )
+
     content {
       type               = "org"
       name               = network.value[0]

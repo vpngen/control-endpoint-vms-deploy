@@ -1,80 +1,48 @@
-import json
-import pytest
-import subprocess
 import paramiko
+import pytest
+from paramiko import SSHClient
 
-host_ipsec = '172.18.0.20'
-port = 22
-username = 'root'
-key = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
-
-def parse_config():
-    with open('/config.json', 'r') as config_file:
-        config_data = json.load(config_file)
-
-    wireguard_config_data = config_data.get('WireguardConfig', {}).get('FileContent', '')
-    with open('/etc/wireguard/wg0.conf', 'w') as file:
-        file.write(wireguard_config_data)
-
-    global ipsec_config_data
-    ipsec_config_data = config_data.get('IPSecL2TPManualConfig', {})
+from tests.common import ip_url, config_json, execute_remote_command
 
 
-def execute_remote_command(ssh, command):
-    stdin, stdout, stderr = ssh.exec_command(command)
-    return stdout.read().decode('utf-8').strip()
+@pytest.fixture
+def ssh_client():
+    client = SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    yield client
+    client.close()
 
 
-def get_external_ip():
-    external_ip = subprocess.run(
-        "curl -s http://ifconfig.me",
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding='utf-8'
-    ).stdout.strip()
-    return external_ip
+@pytest.fixture
+def ipsec_cfg(config_json: dict):
+    yield config_json.get('IPSecL2TPManualConfig', {})
 
-def test_wg():
-    initial_external_ip = get_external_ip()
-    subprocess.run("wg-quick up wg0", shell=True, check=True)
-    updated_external_ip = get_external_ip()
-    subprocess.run("wg-quick down wg0", shell=True, check=True)
-    assert initial_external_ip != updated_external_ip
+
+def test_ipsec(ipsec_cfg: dict, ssh_client: SSHClient):
+    curl_command = f'curl -s {ip_url}'
+    initial_external_ip = execute_remote_command(ssh_client, curl_command)
     print(initial_external_ip)
-    print(updated_external_ip)
-    print("wg")
 
-def test_ipsec():
-    host = host_ipsec
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(
-        host,
-        port,
-        username,
-        pkey=key
-    )
+    startup = f'''export VPN_SERVER_IPV4={ipsec_cfg.get("Server", "")} \
+export VPN_PSK={ipsec_cfg.get("PSK", "")} \
+export VPN_USERNAME={ipsec_cfg.get("Username", "")} \
+export VPN_PASSWORD={ipsec_cfg.get("Password", "")} \
+&& sh /startup.sh > /dev/null & sleep 60'''
+    execute_remote_command(ssh_client, startup)
 
-    curl = "curl -s http://ifconfig.me"
-    initial_external_ip = execute_remote_command(ssh, curl)
-    external_ip = initial_external_ip
-    startup = f'''export VPN_SERVER_IPV4={ipsec_config_data.get("Server", "")} \
-                export VPN_PSK={ipsec_config_data.get("PSK", "")} \
-                export VPN_USERNAME={ipsec_config_data.get("Username", "")} \
-                export VPN_PASSWORD={ipsec_config_data.get("Password", "")} \
-                && sh /startup.sh > /dev/null & sleep 60'''
-    execute_remote_command(ssh, startup)
-    route = "ip route add 195.133.0.108 via 172.18.0.1 && ip route del default  && ip route add default via 100.127.0.1 dev ppp0"
-    execute_remote_command(ssh, route)
-    updated_external_ip = execute_remote_command(ssh, curl)
+    route = ("ip route add 195.133.0.108 via 172.18.0.1 && "
+             "ip route del default  && "
+             "ip route add default via 100.127.0.1 dev ppp0")
+    execute_remote_command(ssh_client, route)
     print(route)
-    print(initial_external_ip)
+
+    updated_external_ip = execute_remote_command(ssh_client, curl_command)
     print(updated_external_ip)
 
-    assert updated_external_ip is not None and updated_external_ip != "" and updated_external_ip != external_ip
-
-    ssh.close()
-
-parse_config()
-get_external_ip()
+    assert all(
+        [
+            updated_external_ip is not None,
+            updated_external_ip != "",
+            updated_external_ip != initial_external_ip,
+        ]
+    )
