@@ -22,7 +22,7 @@ ln -s /dev/null /etc/systemd/system/ipsec.service
 ln -s /dev/null /etc/systemd/system/dnsmasq.service
 
 apt-get install -y bind9-dnsutils rsyslog iptables-persistent ipset ipset-persistent wireguard jq \
-    xtables-addons-dkms dnsmasq zabbix-agent vg-nacl \
+    xtables-addons-dkms dnsmasq zabbix-agent vg-nacl nginx-light \
     libreswan accel-ppp linux-image-generic linux-headers-generic linux-modules-extra-`uname -r` socat \
     openvpn openvpn-dco-dkms easy-rsa cloak-server cloak-client vg-outline-ss-server >> /install.log 2>&1
 
