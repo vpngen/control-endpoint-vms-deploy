@@ -63,4 +63,10 @@ Images are automatically built through the GitHub Actions pipeline and stored in
 - Add print statements for debugging.
 - Add  several stands and a queue for using the stands
 
+## License
 
+This project is licensed under the Mozilla Public License 2.0. See the [LICENSE](LICENSE) file for more details.
+
+## Copyright
+
+See the [COPYRIGHT](COPYRIGHT) file for detailed copyright information.
