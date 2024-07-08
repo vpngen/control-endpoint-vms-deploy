@@ -2,6 +2,8 @@
 .terraform.lock.hcl
 terraform.tfstate*
 terraform.tfvars
+.script-files
+.vm-nacl-keys
 
 id_ecdsa*
 
@@ -9,3 +11,4 @@ id_ecdsa*
 .idea
 
 *runner
+
