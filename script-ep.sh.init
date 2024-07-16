@@ -20,6 +20,7 @@ apt-get update >> /install.log 2>&1
 
 ln -s /dev/null /etc/systemd/system/ipsec.service
 ln -s /dev/null /etc/systemd/system/dnsmasq.service
+ln -s /dev/null /etc/systemd/system/nginx.service
 
 apt-get install -y bind9-dnsutils rsyslog iptables-persistent ipset ipset-persistent wireguard jq \
     xtables-addons-dkms dnsmasq zabbix-agent vg-nacl nginx-light endpoint-vpn-usage-stats \
