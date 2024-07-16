@@ -93,11 +93,14 @@ chmod 600 /vg-endpoint.json >> /install.log 2>&1
 chmod 700 /wg-mng.sh >> /install.log 2>&1
 systemctl enable --now wg-mng.socket >> /install.log 2>&1
 
-dd if=/dev/zero of=/swapfile bs=1M count=512 >> /install.log 2>&1
-chmod 600 /swapfile >> /install.log 2>&1
-mkswap /swapfile >> /install.log 2>&1
-echo '/swapfile none swap defaults 0 0' >> /etc/fstab
-swapon -a  >> /install.log 2>&1
+swap_size="{endpoint_swap_size}"
+if [ $(("${swap_size// }"+0)) -gt 0 ]; then
+    dd if=/dev/zero of=/swapfile bs=1M count=$(("${swap_size// }"+0)) >> /install.log 2>&1
+    chmod 600 /swapfile >> /install.log 2>&1
+    mkswap /swapfile >> /install.log 2>&1
+    echo '/swapfile none swap defaults 0 0' >> /etc/fstab
+    swapon -a  >> /install.log 2>&1
+fi
 
 exit 0
 __PAYLOAD_BEGINS__
