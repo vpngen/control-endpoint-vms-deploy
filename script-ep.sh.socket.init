@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# we are root
+# cwd is /
+
+false ; while [ $? -ne 0 ]; do
+    sleep 0.1
+    nc -zw1 {apt_proxy_ipv4} 3142
+done
+
+echo 'Acquire::http::Proxy "http://{apt_proxy_ipv4}:3142";' > /etc/apt/apt.conf.d/00aptproxy
+echo '{keydesk_repo}' > /etc/apt/sources.list.d/vginfra.list
+
+awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp -C / >> /install.log 2>&1
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get clean >> /install.log 2>&1
+apt-get update >> /install.log 2>&1
+#apt-get upgrade -y >> /install.log 2>&1
+
+ln -s /dev/null /etc/systemd/system/ipsec.service
+ln -s /dev/null /etc/systemd/system/dnsmasq.service
+ln -s /dev/null /etc/systemd/system/nginx.service
+
+apt-get install -y bind9-dnsutils rsyslog iptables-persistent ipset ipset-persistent wireguard jq \
+    xtables-addons-dkms dnsmasq zabbix-agent vg-nacl nginx-light \
+    libreswan accel-ppp linux-headers-`uname -r` linux-modules-extra-`uname -r` socat \
+    openvpn openvpn-dco-dkms easy-rsa cloak-server cloak-client vg-outline-ss-server >> /install.log 2>&1
+
+apt-get remove --purge --assume-yes --auto-remove multipath-tools snapd >> /install.log 2>&1
+
+ip -4 r get 1.1.1.1 | head -1 | awk '{printf "%s/32|%s\n",$7,$3}' > /ip_wan.txt
+
+sysctl -p/etc/sysctl.d/90-endpoint-additions.conf >> /install.log 2>&1
+
+cat >/etc/rsyslog.d/00-lea-remote.conf <<EOF
+\$template outline-ss-msg, "<%pri%>%timestamp% %hostname% %programname%: [LEA-DIR]: %msg:R,ERE,1: proxy (.*)--end%\n"
+
+if \$programname startswith "outline-ss-" then {
+    :msg,contains,"udp.go:" stop
+    if \$msg contains "tcp.go:" then {
+        if \$msg contains " proxy " then {
+            action(type="omfwd" Target="{apt_proxy_ipv4}" Port="514" Protocol="tcp" template="outline-ss-msg")
+        } else if (\$msg contains " address ") or (\$msg contains " TCP(") then {
+            *.* action(type="ompipe" Pipe="/var/run/outline-ss-logger.pipe" tryResumeReopen="on")
+        }
+        stop
+    }
+}
+
+:msg,contains,"[LEA-" @@{apt_proxy_ipv4}
+& stop
+EOF
+
+endpoint_ipv4_array=(`ip -4 r get 1.1.1.1 | head -1 | cut -d ' ' -f 7 | tr '.' ' '`)
+prefix_ipv6=`printf "%s:%x:%x:0:0:0:0:" "{control_ipv6_high_hex}" $((${endpoint_ipv4_array[0]}*256+${endpoint_ipv4_array[1]})) $((${endpoint_ipv4_array[2]}*256+${endpoint_ipv4_array[3]}))`
+
+cat >/etc/wireguard/wg0.conf <<EOF
+[Interface]
+Address = ${prefix_ipv6}3/128
+PrivateKey = {endpoint_wg_private_key}
+SaveConfig = false
+ListenPort = 53999
+PostUp = iptables -A INPUT -s {control_ipv4}/32 -p udp --dport 53999 -j ACCEPT
+PostUp = iptables -A INPUT -s {control_ipv4}/32 -p tcp -m state --state NEW --dport 22 -j ACCEPT
+PostUp = ip6tables -A INPUT -i %i -p tcp -m state --state NEW --dport 8080 -j ACCEPT
+PostDown = iptables -D INPUT -s {control_ipv4}/32 -p udp --dport 53999 -j ACCEPT
+PostDown = iptables -D INPUT -s {control_ipv4}/32 -p tcp -m state --state NEW --dport 22 -j ACCEPT
+PostDown = ip6tables -D INPUT -i %i -p tcp -m state --state NEW --dport 8080 -j ACCEPT
+
+[Peer]
+PublicKey = {control_wg_public_key}
+AllowedIPs = ${prefix_ipv6}2/128
+PersistentKeepalive = 10
+EOF
+
+cat >/etc/zabbix/zabbix_agentd.conf <<EOF
+PidFile=/run/zabbix/zabbix_agentd.pid
+LogFile=/var/log/zabbix/zabbix_agentd.log
+LogFileSize=1
+Server={apt_proxy_ipv4}
+Include=/etc/zabbix/zabbix_agentd.d/*.conf
+EOF
+
+ln -sn /var/log/zabbix-agent /var/log/zabbix >> /install.log 2>&1
+
+systemctl restart rsyslog >> /install.log 2>&1
+systemctl restart systemd-journald >> /install.log 2>&1
+
+iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
+ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
+
+systemctl restart outline-ss-logger.service >> /install.log 2>&1
+systemctl enable outline-ss-logger.service >> /install.log 2>&1
+
+systemctl restart zabbix-agent.service >> /install.log 2>&1
+systemctl enable zabbix-agent.service >> /install.log 2>&1
+
+systemctl enable --now wg-quick@wg0 >> /install.log 2>&1
+
+[ ! -f /wg-mng.sh ] && curl -sS -x '{apt_proxy_ipv4}:3142' -o /wg-mng.sh 'https://raw.githubusercontent.com/vpngen/endpoint-setup-files/main/wg-mng.sh' >> /install.log 2>&1
+
+chmod 600 /vg-endpoint.json >> /install.log 2>&1
+chmod 700 /wg-mng.sh >> /install.log 2>&1
+systemctl enable --now wg-mng.socket >> /install.log 2>&1
+
+exit 0
+__PAYLOAD_BEGINS__

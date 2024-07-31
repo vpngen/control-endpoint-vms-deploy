@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# we are root
+# cwd is /
+
+echo '{keydesk_repo}' > /etc/apt/sources.list.d/vginfra.list
+export DEBIAN_FRONTEND=noninteractive
+apt clean >> /install.log 2>&1
+apt update >> /install.log 2>&1
+#apt upgrade -y >> /install.log 2>&1
+
+apt install -y rsyslog iptables-persistent socat apt-cacher-ng wireguard >> /install.log 2>&1
+
+awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp -C / >> /install.log 2>&1
+
+sysctl -p/etc/sysctl.d/90-control-additions.conf >> /install.log 2>&1
+
+cat >/etc/systemd/system/socat-apt-proxy.service <<EOF
+[Unit]
+Description=Socat APT Proxy
+
+[Service]
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=socat-apt-proxy
+
+ExecStart=/usr/bin/socat -d -d TCP6-LISTEN:3142,su=nobody,fork,range=[fdcc::]/7,reuseaddr TCP4:127.0.0.1:3142
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat >/etc/systemd/system/socat-rsyslog-proxy.service <<EOF
+[Unit]
+Description=Socat Rsyslog Proxy
+
+[Service]
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=socat-rsyslog-proxy
+
+ExecStart=/usr/bin/socat -d -d TCP6-LISTEN:514,su=nobody,fork,reuseaddr TCP4:127.0.0.1:514
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat >/etc/wireguard/wg10000.conf <<EOF
+[Interface]
+Address = {control_wg_ipv4}/32
+PrivateKey = {control_wg_private_key}
+SaveConfig = false
+PostUp = iptables -A INPUT -i %i -s {management_wg_ipv4}/32 -p tcp -m state --state NEW --dport 22 -j ACCEPT
+PostUp = iptables -A INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 514,3142 -j ACCEPT
+PostDown = iptables -D INPUT -i %i -s {management_wg_ipv4}/32 -p tcp -m state --state NEW --dport 22 -j ACCEPT
+PostDown = iptables -D INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 514,3142 -j ACCEPT
+
+[Peer]
+PublicKey = {management_wg_public_key}
+Endpoint = {management_wg_endpoint}
+AllowedIPs = {management_wg_ipv4}/32
+PersistentKeepalive = 10
+EOF
+
+iptables-restore < /etc/iptables/rules.v4 >> /install.log 2>&1
+ip6tables-restore < /etc/iptables/rules.v6 >> /install.log 2>&1
+
+systemctl enable --now socat-apt-proxy.service >> /install.log 2>&1
+systemctl enable --now socat-rsyslog-proxy.service >> /install.log 2>&1
+systemctl enable --now wg-quick@wg10000 >> /install.log 2>&1
+
+echo 'PassThroughPattern: ^.*\.(debian\.org|ubuntu\.com|hetzner\.com|githubusercontent\.com):443$' > /etc/apt-cacher-ng/zzz_override.conf
+systemctl restart apt-cacher-ng.service
+
+apt install -y vgkeydesk-all cert-vpn-works vg-nacl >> /install.log 2>&1
+
+exit 0
+
+__PAYLOAD_BEGINS__
