@@ -52,6 +52,7 @@ sed -i 's#{apt_proxy}#${var.lan_mgmt_ip}#g' .script-files/script-ct.sh.${each.va
 sed -i 's#{rsyslog_remote}#${var.lan_mgmt_ip}#g' .script-files/script-ct.sh.${each.value} ;
 sed -i 's#{keydesk_repo}#${var.keydesk_deb_repo_string}#g' .script-files/script-ct.sh.${each.value} ;
 sed -i 's#{zabbix_server}#${var.zabbix_server}#g' .script-files/script-ct.sh.${each.value} ;
+sed -i 's#{lan_mgmt_ip}#${var.lan_mgmt_ip}#g' .script-files/script-ct.sh.${each.value} ;
 sed -i 's#{endpoint_ipv6}#${format("%s3", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])}#g' .script-files/script-ct.sh.${each.value} ;
 tar czp -C setup-files-ct/ --exclude='.git' . -C ../.vm-nacl-keys/key-pair.${each.value}/ etc/vg-router.json | base64 >> .script-files/script-ct.sh.${each.value}
 EOT
