@@ -147,6 +147,7 @@ sed -i 's#{ip_wan_input}#${join(",", [for ip in slice(var.wan_name_ip_net_gw, ea
 sed -i 's#{ipv6_input}#${join("3,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}3#' .script-files/script-ep.sh.${each.value} ;
 sed -i 's#{apt_proxy}#${format("%s2", local.ctrl_ipv6_ips[each.value * var.wan_ips_per_vm])}#g' .script-files/script-ep.sh.${each.value} ;
 sed -i 's#{keydesk_repo}#${var.keydesk_deb_repo_string}#g' .script-files/script-ep.sh.${each.value} ;
+sed -i 's#{lan_mgmt_ip}#${var.lan_mgmt_ip}#g' .script-files/script-ep.sh.${each.value} ;
 sed -i 's#{control_ipv6_list}#${join("2,", slice(local.ctrl_ipv6_ips, each.value * var.wan_ips_per_vm, min((each.value + 1) * var.wan_ips_per_vm, length(local.ctrl_ipv6_ips))))}2#' .script-files/script-ep.sh.${each.value} ;
 tar czp -C setup-files-ep/ --exclude='.git' . -C ../.vm-nacl-keys/key-pair.${each.value}/ vg-endpoint.json | base64 >> .script-files/script-ep.sh.${each.value}
 EOT
