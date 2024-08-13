@@ -54,10 +54,10 @@ cat >/etc/wireguard/wg10000.conf <<EOF
 Address = {control_wg_ipv4}/32
 PrivateKey = {control_wg_private_key}
 SaveConfig = false
-PostUp = iptables -A INPUT -i %i -s {management_wg_ipv4}/32 -p tcp -m state --state NEW --dport 22 -j ACCEPT
-PostUp = iptables -A INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 514,3142 -j ACCEPT
-PostDown = iptables -D INPUT -i %i -s {management_wg_ipv4}/32 -p tcp -m state --state NEW --dport 22 -j ACCEPT
-PostDown = iptables -D INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 514,3142 -j ACCEPT
+PostUp = iptables -A INPUT -i %i -s {management_wg_ipv4}/32 -p tcp -m state --state NEW -m multiport --dports 22,80 -j ACCEPT
+PostUp = iptables -A INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 80,443,514,3142 -j ACCEPT
+PostDown = iptables -D INPUT -i %i -s {management_wg_ipv4}/32 -p tcp -m state --state NEW -m multiport --dports 22,80 -j ACCEPT
+PostDown = iptables -D INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 80,443,514,3142 -j ACCEPT
 
 [Peer]
 PublicKey = {management_wg_public_key}
@@ -75,8 +75,6 @@ cat >/etc/iptables/rules.v4 <<EOF
 :OUTPUT ACCEPT [0:0]
 -A INPUT -i lo -j ACCEPT
 -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
--A INPUT ! -i wg+ -s {lan_mgmt_ip}/32 -p tcp -m state --state NEW -m multiport --dports 22,80 -j ACCEPT
--A INPUT ! -i wg+ -s {zabbix_server}/32 -p tcp -m state --state NEW --dport 10050 -j ACCEPT
 -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
 COMMIT
 *nat
