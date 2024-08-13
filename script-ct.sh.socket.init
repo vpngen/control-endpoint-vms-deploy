@@ -55,9 +55,9 @@ Address = {control_wg_ipv4}/32
 PrivateKey = {control_wg_private_key}
 SaveConfig = false
 PostUp = iptables -A INPUT -i %i -s {management_wg_ipv4}/32 -p tcp -m state --state NEW -m multiport --dports 22,80 -j ACCEPT
-PostUp = iptables -A INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 80,443,514,3142 -j ACCEPT
+PostUp = iptables -A INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 514,3142 -j ACCEPT
 PostDown = iptables -D INPUT -i %i -s {management_wg_ipv4}/32 -p tcp -m state --state NEW -m multiport --dports 22,80 -j ACCEPT
-PostDown = iptables -D INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 80,443,514,3142 -j ACCEPT
+PostDown = iptables -D INPUT -s {control_network} -p tcp -m state --state NEW -m tcp -m multiport --dports 514,3142 -j ACCEPT
 
 [Peer]
 PublicKey = {management_wg_public_key}
@@ -92,7 +92,7 @@ cat >/etc/iptables/rules.v6 <<EOF
 :OUTPUT ACCEPT [0:0]
 -A INPUT -i lo -j ACCEPT
 -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
--A INPUT ! -i wg+ -s fc00::/7 -p tcp -m state --state NEW -m multiport --dports 80,443,514,3142 -j ACCEPT
+-A INPUT -i wg+ -s fc00::/7 -p tcp -m state --state NEW -m multiport --dports 80,443,514,3142 -j ACCEPT
 -A INPUT -p ipv6-icmp -j ACCEPT
 COMMIT
 *nat
