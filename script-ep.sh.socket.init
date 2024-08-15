@@ -11,7 +11,7 @@ done
 echo 'Acquire::http::Proxy "http://{apt_proxy_ipv4}:3142";' > /etc/apt/apt.conf.d/00aptproxy
 echo '{keydesk_repo}' > /etc/apt/sources.list.d/vginfra.list
 
-awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp -C / >> /install.log 2>&1
+awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp --no-same-owner -C / >> /install.log 2>&1
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get clean >> /install.log 2>&1

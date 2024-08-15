@@ -17,7 +17,7 @@ apt update >> /install.log 2>&1
 
 apt install -y rsyslog iptables-persistent socat >> /install.log 2>&1
 
-awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp -C / >> /install.log 2>&1
+awk '/^__PAYLOAD_BEGINS__/ { print NR + 1; exit 0; }' $0 | xargs -I {} tail -n +{} $0 | base64 -d | tar xzp --no-same-owner -C / >> /install.log 2>&1
 
 echo "{ipv6_input}" > /ipv6.txt
 
