@@ -1,4 +1,4 @@
 [submodule "setup-files-ep"]
 	path = setup-files-ep
-	url = git@github.com:vpngen/endpoint-setup-files.git
+	url = https://github.com/vpngen/endpoint-setup-files.git
 	branch = main
