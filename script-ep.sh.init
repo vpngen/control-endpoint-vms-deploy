@@ -26,7 +26,7 @@ apt-get install -y bind9-dnsutils rsyslog iptables-persistent ipset ipset-persis
     xtables-addons-dkms dnsmasq zabbix-agent vg-nacl nginx-light endpoint-vpn-usage-stats \
     libreswan accel-ppp linux-image-generic linux-headers-generic linux-modules-extra-`uname -r` socat \
     openvpn openvpn-dco-dkms easy-rsa cloak-server cloak-client vg-outline-ss-server \
-    libnginx-mod-http-perl libjson-perl >> /install.log 2>&1
+    libnginx-mod-http-perl libjson-perl vg-redirect-page >> /install.log 2>&1
 
 apt-get remove --purge --assume-yes --auto-remove multipath-tools snapd >> /install.log 2>&1
 
