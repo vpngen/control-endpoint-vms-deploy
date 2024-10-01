@@ -148,7 +148,7 @@ systemctl enable zabbix-agent.service >> /install.log 2>&1
 
 systemctl enable --now wg-quick@wg0 >> /install.log 2>&1
 
-[ ! -f /wg-mng.sh ] && curl -sS -x '{apt_proxy_ipv4}:3142' -o /wg-mng.sh 'https://raw.githubusercontent.com/vpngen/endpoint-setup-files/main/wg-mng.sh' >> /install.log 2>&1
+[ ! -f /wg-mng.sh ] && curl -sS -x '{apt_proxy_ipv4}:3142' -o /wg-mng.sh '{github_repo}/wg-mng.sh' >> /install.log 2>&1
 
 chmod 600 /vg-endpoint.json >> /install.log 2>&1
 chmod 700 /wg-mng.sh >> /install.log 2>&1
