@@ -54,6 +54,18 @@ if \$programname startswith "outline-ss-" then {
 & stop
 EOF
 
+cat >/etc/rsyslog.d/00-lea-p0.conf <<EOF
+\$template p0-tpl-msg, "<%pri%>%timestamp% %hostname% %programname%: [LEA-DIR]: %msg:R,ERE,1: from ([^\[]*)--end%\n"
+
+if \$programname startswith "p0-ns-" then {
+    :msg,contains," accepted udp:" stop
+    if \$msg contains " accepted tcp:" then {
+        action(type="omfwd" Target="{apt_proxy_ipv4}" Port="514" Protocol="tcp" template="p0-tpl-msg")
+        stop
+    }
+}
+EOF
+
 endpoint_ipv4_array=(`ip -4 r get 1.1.1.1 | head -1 | cut -d ' ' -f 7 | tr '.' ' '`)
 prefix_ipv6=`printf "%s:%x:%x:0:0:0:0:" "{control_ipv6_high_hex}" $((${endpoint_ipv4_array[0]}*256+${endpoint_ipv4_array[1]})) $((${endpoint_ipv4_array[2]}*256+${endpoint_ipv4_array[3]}))`
 
